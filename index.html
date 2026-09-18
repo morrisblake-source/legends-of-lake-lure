@@ -1,0 +1,13 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Legends of Lake Lure</title><link rel="stylesheet" href="styles.css"></head><body>
+<header><div class="brand"><div class="mark">LL</div><div><b>THE LEGENDS OF LAKE LURE</b><span>2026 Cup · Sep 25–27</span></div></div><button id="adminBtn" class="ghost">⚙ Admin</button></header>
+<nav><button data-view="home" class="active">Cup</button><button data-view="matches">Matches</button><button data-view="score">Enter Scores</button><button data-view="players">Players</button><button data-view="weekend">Weekend</button></nav>
+<main>
+<section id="home" class="view active"><div class="hero"><p>LIVE CUP SCORE</p><div class="cupscore"><div><b id="bundrickPts">0</b><span>TEAM BUNDRICK</span></div><i>—</i><div><b id="dyerPts">0</b><span>TEAM DYER</span></div></div><small>10.5 points to retain · 11 points to win</small></div><div id="sessionCards"></div></section>
+<section id="matches" class="view"><div class="sectionTitle"><div><small>ROUND 1 · APPLE VALLEY</small><h2>High / Low</h2></div><span class="pill">3 pts available</span></div><div id="matchCards"></div></section>
+<section id="score" class="view"><div class="sectionTitle"><div><small>LIVE SCORING</small><h2>Enter scores</h2></div></div><div class="panel"><label>Match<select id="scoreMatch"></select></label><label>Hole<select id="scoreHole"></select></label><div id="scoreInputs"></div><button id="saveScores" class="primary">Save hole & update match</button><p class="hint">Enter gross scores. High/Low automatically applies the match's relative strokes. Scores are saved on this device; connect Supabase for shared live updates.</p></div><div id="holeResult"></div></section>
+<section id="players" class="view"><div class="sectionTitle"><div><small>PLAYER DATABASE</small><h2>History & handicaps</h2></div></div><input id="playerSearch" class="search" placeholder="Search player…"><div id="playerGrid" class="playerGrid"></div></section>
+<section id="weekend" class="view"><div class="sectionTitle"><div><small>2026</small><h2>Weekend card</h2></div></div><div id="weekendCard"></div></section>
+</main>
+<div id="modal" class="modal"><div class="modalBox"><button id="closeModal" class="x">×</button><h2>Admin</h2><p class="hint">Update handicaps or switch Fuller/Pratt. Changes save locally.</p><div id="adminPlayers"></div><button id="saveAdmin" class="primary">Save changes</button></div></div>
+<script src="data.js"></script><script src="app.js"></script></body></html>
