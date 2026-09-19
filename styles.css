@@ -145,3 +145,42 @@ url("lake-lure-scene.jpg") center/cover no-repeat!important}
 52%{opacity:.75;transform:translateX(-50%) scale(1)}
 72%{opacity:.42;transform:translateX(-50%) scale(1.35)}
 86%,100%{opacity:0;transform:translateX(-50%) scale(1.7)}}
+
+/* UPDATE 8.3.3 */
+.introScene img{
+ width:min(48vw,245px)!important;
+ max-height:58vh!important;
+ animation:waterRise833 5.35s linear forwards!important;
+ transform-origin:center center!important;
+ backface-visibility:hidden!important;
+ -webkit-backface-visibility:hidden!important;
+ will-change:transform,opacity!important;
+}
+@keyframes waterRise833{
+ 0%{transform:translate3d(0,43vh,0) scale(.54);opacity:.12}
+ 8%{transform:translate3d(0,40vh,0) scale(.54);opacity:.55}
+ 58%{transform:translate3d(0,4vh,0) scale(.54);opacity:1}
+ 68%{transform:translate3d(0,0,0) scale(.54);opacity:1}
+ 73%{transform:translate3d(0,0,0) scale(.54);opacity:1}
+ 100%{transform:translate3d(0,-1vh,0) scale(6.2);opacity:0}
+}
+.introScene:before{
+ top:60%!important;
+ background:linear-gradient(180deg,rgba(7,48,58,.03),rgba(3,31,40,.34))!important;
+}
+.introScene:after{top:60.5%!important;animation:ripple833 5.35s ease-out forwards!important}
+@keyframes ripple833{
+ 0%{opacity:0;transform:translateX(-50%) scale(.2)}
+ 18%{opacity:.35;transform:translateX(-50%) scale(.55)}
+ 58%{opacity:.75;transform:translateX(-50%) scale(1.05)}
+ 72%{opacity:.25;transform:translateX(-50%) scale(1.35)}
+ 82%,100%{opacity:0;transform:translateX(-50%) scale(1.6)}
+}
+.pairingSides{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:10px;align-items:center;margin-top:10px}
+.pairSide{display:grid;gap:8px}
+.pairVs833{display:flex;align-items:center;justify-content:center;padding:6px 9px;border-radius:999px;background:#123c2d;color:#d8b45b;border:1px solid rgba(216,180,91,.6);font-size:12px;font-weight:900;letter-spacing:1.4px}
+@media(max-width:600px){
+ .pairingSides{grid-template-columns:1fr;gap:7px}
+ .pairVs833{width:max-content;min-width:46px;margin:0 auto}
+ .introScene img{width:min(52vw,235px)!important}
+}
