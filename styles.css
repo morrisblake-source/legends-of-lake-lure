@@ -8,3 +8,6 @@
 .hlres{display:inline-block;text-align:left;line-height:1.45;font-weight:500}
 .resultcell .dyer{color:#b8860b!important}
 .resultcell .bundrick{color:#b3261e!important}
+
+/* TEST UPDATE 5 */
+.histgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.histgrid>div{background:#f7f7f4;border-radius:10px;padding:10px}.statrow{display:grid;grid-template-columns:1fr auto 48px;gap:8px;padding:7px 0;border-bottom:1px solid #e7e7e2;align-items:center;font-size:13px}.statrow small{text-align:right;color:#777}.careerbig{display:flex;align-items:baseline;gap:12px}.careerbig b{font-size:24px}.careerbig span{font-size:12px;color:#777}.admintabs{display:flex;gap:6px;margin:8px 0 14px}.admintabs button{border:1px solid #ddd;background:#fff;border-radius:20px;padding:9px 14px;font-weight:700}.admintabs button.on{background:#123c2d;color:#fff}.handicaprow{display:grid;grid-template-columns:1.2fr 90px 1.3fr;gap:10px;align-items:center;border-top:1px solid #eee;padding:10px 0}.handicaprow small{display:block;color:#777}.handicaprow input{margin:0}.hcalc{font-size:12px;color:#555}@media(max-width:650px){.histgrid{grid-template-columns:1fr}.handicaprow{grid-template-columns:1fr 90px}.hcalc{grid-column:1/-1}}
