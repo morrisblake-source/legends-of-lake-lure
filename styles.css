@@ -195,3 +195,7 @@ nav{overflow-x:auto;-webkit-overflow-scrolling:touch;justify-content:flex-start;
   100%{opacity:0;transform:translateX(-50%) scale(1.8)}
 }
 @media(max-width:600px){.introScene img{width:min(42vw,180px)!important}}
+
+/* 8.4.4 Cup readability */
+.hero .scoreline strong{font-size:13px;letter-spacing:.5px}
+.hero .scoreline.projected strong{font-size:13px}
