@@ -120,67 +120,51 @@ url("lake-lure-scene.jpg") center/cover no-repeat!important}
 100%{transform:translate3d(0,-10px,0) scale(6.8);opacity:0}}
 .pairVs831{display:flex;align-items:center;justify-content:center;min-width:44px;width:max-content;margin:7px auto;padding:5px 10px;font-size:12px;font-weight:1000;letter-spacing:1.4px;color:#d8b45b;background:#123c2d;border:1px solid rgba(216,180,91,.55);border-radius:999px}
 
-/* UPDATE 8.3.2 — Cedarwood Legends emblem emerging from lake */
-.intro{overflow:hidden!important}
-.introScene{position:relative!important;overflow:hidden!important}
-.introScene:before{content:""!important;display:block!important;position:absolute!important;left:0!important;right:0!important;top:59%!important;bottom:0!important;background:linear-gradient(180deg,rgba(9,55,65,.06),rgba(3,35,44,.28))!important;z-index:3!important;pointer-events:none!important}
-.introScene img{position:relative!important;z-index:2!important;width:min(84vw,430px)!important;max-height:76vh!important;object-fit:contain!important;border-radius:0!important;box-shadow:none!important;transform-origin:center 76%!important;animation:waterRise832 5.05s cubic-bezier(.18,.02,.12,1) forwards!important;filter:drop-shadow(0 16px 20px rgba(0,0,0,.38))}
-.introScene:after{content:""!important;display:block!important;position:absolute!important;z-index:4!important;left:50%!important;top:61%!important;width:min(50vw,270px)!important;height:24px!important;border-radius:50%!important;background:radial-gradient(ellipse,rgba(242,196,105,.34),rgba(200,224,220,.15) 40%,rgba(255,255,255,0) 73%)!important;filter:blur(5px)!important;pointer-events:none!important;animation:ripple832 5.05s ease-out forwards!important}
-@keyframes waterRise832{
-0%{transform:translate3d(0,52vh,0) scale(.48);opacity:.10}
-12%{transform:translate3d(0,47vh,0) scale(.50);opacity:.40}
-25%{transform:translate3d(0,38vh,0) scale(.54);opacity:.84}
-40%{transform:translate3d(0,27vh,0) scale(.60);opacity:1}
-55%{transform:translate3d(0,15vh,0) scale(.68);opacity:1}
-68%{transform:translate3d(0,5vh,0) scale(.78);opacity:1}
-76%{transform:translate3d(0,0,0) scale(.90);opacity:1}
-82%{transform:translate3d(0,-1vh,0) scale(1.05);opacity:1}
-88%{transform:translate3d(0,-1vh,0) scale(1.38);opacity:1}
-93%{transform:translate3d(0,-1vh,0) scale(2.05);opacity:1}
-97%{transform:translate3d(0,-1vh,0) scale(3.55);opacity:.84}
-100%{transform:translate3d(0,-1vh,0) scale(6.2);opacity:0}}
-@keyframes ripple832{
-0%,10%{opacity:0;transform:translateX(-50%) scale(.25)}
-25%{opacity:.45;transform:translateX(-50%) scale(.55)}
-52%{opacity:.75;transform:translateX(-50%) scale(1)}
-72%{opacity:.42;transform:translateX(-50%) scale(1.35)}
-86%,100%{opacity:0;transform:translateX(-50%) scale(1.7)}}
-
-/* UPDATE 8.3.3 */
+/* UPDATE 8.3.3 — smooth distant water rise */
+.intro{background:linear-gradient(180deg,rgba(4,25,19,.01),rgba(4,25,19,.06)),url("lake-lure-intro.jpg") center 50%/cover no-repeat!important;overflow:hidden!important}
+.introScene{position:relative!important;width:100%!important;height:100%!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important}
 .introScene img{
- width:min(48vw,245px)!important;
- max-height:58vh!important;
- animation:waterRise833 5.35s linear forwards!important;
- transform-origin:center center!important;
- backface-visibility:hidden!important;
- -webkit-backface-visibility:hidden!important;
+ position:absolute!important;left:50%!important;top:57%!important;
+ width:min(45vw,225px)!important;height:auto!important;
+ border-radius:0!important;box-shadow:none!important;
+ filter:drop-shadow(0 8px 12px rgba(0,0,0,.34))!important;
+ transform-origin:50% 75%!important;
+ animation:emerge833 5.45s linear forwards!important;
  will-change:transform,opacity!important;
-}
-@keyframes waterRise833{
- 0%{transform:translate3d(0,43vh,0) scale(.54);opacity:.12}
- 8%{transform:translate3d(0,40vh,0) scale(.54);opacity:.55}
- 58%{transform:translate3d(0,4vh,0) scale(.54);opacity:1}
- 68%{transform:translate3d(0,0,0) scale(.54);opacity:1}
- 73%{transform:translate3d(0,0,0) scale(.54);opacity:1}
- 100%{transform:translate3d(0,-1vh,0) scale(6.2);opacity:0}
+ z-index:2!important;
 }
 .introScene:before{
- top:60%!important;
- background:linear-gradient(180deg,rgba(7,48,58,.03),rgba(3,31,40,.34))!important;
+ content:""!important;display:block!important;position:absolute!important;
+ z-index:3!important;left:0!important;right:0!important;top:61%!important;bottom:0!important;
+ background:linear-gradient(180deg,rgba(10,58,68,.08),rgba(3,35,44,.18))!important;
+ pointer-events:none!important;
 }
-.introScene:after{top:60.5%!important;animation:ripple833 5.35s ease-out forwards!important}
+.introScene:after{
+ content:""!important;display:block!important;position:absolute!important;z-index:4!important;
+ left:50%!important;top:61%!important;width:min(30vw,160px)!important;height:16px!important;
+ border-radius:50%!important;background:radial-gradient(ellipse,rgba(242,196,105,.28),rgba(220,235,230,.13) 42%,transparent 73%)!important;
+ filter:blur(4px)!important;animation:ripple833 5.45s ease-out forwards!important;pointer-events:none!important;
+}
+@keyframes emerge833{
+ 0%{transform:translate3d(-50%,145px,0) scale(.72);opacity:.15}
+ 55%{transform:translate3d(-50%,-78px,0) scale(.72);opacity:1}
+ 68%{transform:translate3d(-50%,-82px,0) scale(.72);opacity:1}
+ 100%{transform:translate3d(-50%,-82px,0) scale(7.2);opacity:0}
+}
 @keyframes ripple833{
- 0%{opacity:0;transform:translateX(-50%) scale(.2)}
- 18%{opacity:.35;transform:translateX(-50%) scale(.55)}
- 58%{opacity:.75;transform:translateX(-50%) scale(1.05)}
- 72%{opacity:.25;transform:translateX(-50%) scale(1.35)}
- 82%,100%{opacity:0;transform:translateX(-50%) scale(1.6)}
+ 0%{opacity:0;transform:translateX(-50%) scale(.3)}
+ 18%{opacity:.3;transform:translateX(-50%) scale(.6)}
+ 48%{opacity:.75;transform:translateX(-50%) scale(1)}
+ 66%{opacity:.28;transform:translateX(-50%) scale(1.35)}
+ 78%,100%{opacity:0;transform:translateX(-50%) scale(1.6)}
 }
-.pairingSides{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:10px;align-items:center;margin-top:10px}
-.pairSide{display:grid;gap:8px}
-.pairVs833{display:flex;align-items:center;justify-content:center;padding:6px 9px;border-radius:999px;background:#123c2d;color:#d8b45b;border:1px solid rgba(216,180,91,.6);font-size:12px;font-weight:900;letter-spacing:1.4px}
-@media(max-width:600px){
- .pairingSides{grid-template-columns:1fr;gap:7px}
- .pairVs833{width:max-content;min-width:46px;margin:0 auto}
- .introScene img{width:min(52vw,235px)!important}
-}
+.pairingSides{display:grid!important;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)!important;gap:10px!important;align-items:center!important;margin-top:10px!important}
+.pairingSide{display:grid!important;gap:8px!important}
+.pairingSide small{font-size:10px!important;font-weight:900!important;letter-spacing:.8px!important;color:#777!important;text-align:center!important}
+.pairVs833{display:flex!important;align-items:center!important;justify-content:center!important;width:44px!important;height:32px!important;border-radius:999px!important;background:#123c2d!important;color:#d8b45b!important;border:1px solid rgba(216,180,91,.65)!important;font-size:12px!important;font-weight:1000!important;letter-spacing:1px!important}
+@media(max-width:600px){.introScene img{width:min(48vw,205px)!important}.pairingSides{grid-template-columns:minmax(0,1fr) 40px minmax(0,1fr)!important;gap:7px!important}.pairVs833{width:40px!important}}
+
+
+/* UPDATE 8.4 — Contests, Pics/Vids, Home Screen icon */
+nav{overflow-x:auto;-webkit-overflow-scrolling:touch;justify-content:flex-start;padding:0 max(4px,calc((100vw - 760px)/2));z-index:8}nav button{flex:0 0 auto;padding:0 14px;white-space:nowrap}@media(max-width:600px){nav button{padding:0 11px;font-size:12px}}
+.ctpcard>small{color:#a27d3f;font-weight:900}.ctpcard h3{margin:5px 0 10px}.ctpleader{background:#123c2d;color:#fff;border-radius:12px;padding:14px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:3px 10px}.ctpleader span{grid-column:1/-1;color:#dec78d;font-size:9px;font-weight:900;letter-spacing:1.2px}.ctpleader b{font:700 19px Georgia,serif}.ctpleader strong{font-size:22px}.ctpcard details{margin-top:12px}.ctpcard summary{font-size:12px;font-weight:800;cursor:pointer}.ctplist{margin-top:8px}.ctplist>div{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:8px 0;border-top:1px solid #eee;font-size:13px}.ctplist button,.mediaDelete{border:1px solid #ddd;background:#fff;border-radius:8px;padding:5px 8px;color:#8d201a}.ctpentry{border-top:1px solid #eee;margin-top:12px;padding-top:5px}.distanceinputs{display:grid;grid-template-columns:1fr 1fr;gap:8px}.contestadmin select{margin-top:8px}.optional{font-weight:400;color:#888}.mediaupload label{margin-top:13px}.mediaupload b{font:700 20px Georgia,serif}.mediagrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin-top:14px}.mediaitem{background:#fff;border:1px solid #e1e2dd;border-radius:14px;overflow:hidden}.mediaitem img,.mediaitem video{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;background:#111}.mediaitem>div{padding:11px}.mediaitem p{margin:5px 0;font-size:13px}.mediaitem small{display:block;color:#888;font-size:10px}.mediaDelete{margin-top:8px}.emptygallery{grid-column:1/-1;text-align:center}@media(max-width:650px){.mediagrid{grid-template-columns:1fr}.mediaitem img,.mediaitem video{max-height:70vh}}
