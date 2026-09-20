@@ -1,7 +1,34 @@
 const D=LL;const LS={match:"ll-score-match",hole:"ll-score-hole",view:"ll-view",round:"ll-round",player:"ll-player"};const ADMIN_PIN="1961";if(!D.players.some(p=>p.id==="brown"))D.players.push({id:"brown",name:"Justin Brown",team:"Bundrick",index:0.1,apple:1,bald:-1,brights:1,ghin:"https://www.ghin.com/golfer-lookup/golfer/53616c7465645f5f15b96889a4af0e8c1e05ad4246793204/club/28469",sub:true});const Y={"apple": [361, 531, 152, 387, 388, 505, 340, 194, 423, 428, 330, 376, 367, 168, 558, 390, 165, 562], "bald": [488, 169, 419, 142, 341, 151, 509, 348, 479, 384, 381, 152, 327, 373, 509, 160, 421, 472], "brights": [538, 397, 200, 365, 470, 213, 377, 388, 406, 368, 302, 380, 162, 508, 376, 178, 415, 532]};Object.keys(Y).forEach(k=>D.courses[k].yardages=Y[k]);
+
+const APP_RELEASE="8.5.1";
+let pendingReleaseReload=false,releaseCheckBusy=false;
+function canReloadForRelease(){
+  if(scoreViewActive())return false;
+  const a=document.activeElement;
+  return !(a&&["INPUT","TEXTAREA","SELECT"].includes(a.tagName));
+}
+function reloadForRelease(){
+  const u=new URL(location.href);
+  u.searchParams.set("release",String(Date.now()));
+  location.replace(u.toString());
+}
+async function checkAppRelease(){
+  if(releaseCheckBusy)return;
+  releaseCheckBusy=true;
+  try{
+    const r=await fetch(`release.json?check=${Date.now()}`,{cache:"no-store"});
+    if(!r.ok)return;
+    const j=await r.json();
+    if(j.version&&j.version!==APP_RELEASE){
+      if(canReloadForRelease())reloadForRelease();
+      else pendingReleaseReload=true;
+    }
+  }catch(e){}finally{releaseCheckBusy=false}
+}
+function applyPendingRelease(){if(pendingReleaseReload&&canReloadForRelease())reloadForRelease()}
 const sb=supabase.createClient(D.url,D.key);const HKEY="ll-handicap-snapshot-2026";let HS=JSON.parse(localStorage.getItem(HKEY)||"{}");D.players.forEach(p=>{if(HS[p.id])Object.assign(p,HS[p.id])});let M=structuredClone(D.matches),S={},round=+(localStorage.getItem(LS.round)||1);
 const P=id=>D.players.find(p=>p.id===id),C=id=>D.courses[id],names=a=>a.length?a.map(x=>P(x)?.name.split(" ").pop()).join(" / "):"TBD",fn=f=>({high_low:"High / Low",modified_alt:"Modified Alternate Shot",better_ball:"Better Ball",singles:"Singles"}[f]),ch=(id,c)=>{let p=P(id),v=p?.[c];if(v!=null)return v;let co=C(c);if(p?.index==null||!co)return null;let par=co.pars.reduce((a,b)=>a+b,0);return Math.round(p.index*(co.slope/113)+(co.rating-par))};
-function showView(v){document.querySelectorAll("nav button,.view").forEach(x=>x.classList.remove("on"));document.querySelector(`nav button[data-v="${v}"]`)?.classList.add("on");document.getElementById(v)?.classList.add("on");localStorage.setItem(LS.view,v);if(v==="score")load();if(v==="contests")loadCTP();if(v==="media")loadMedia()}document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>showView(b.dataset.v));
+function showView(v){document.querySelectorAll("nav button,.view").forEach(x=>x.classList.remove("on"));document.querySelector(`nav button[data-v="${v}"]`)?.classList.add("on");document.getElementById(v)?.classList.add("on");localStorage.setItem(LS.view,v);if(v==="score")load();if(v==="contests")loadCTP();if(v==="media")loadMedia();if(v!=="score"){applyPendingRelease();checkAppRelease()}}document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>showView(b.dataset.v));
 function strokes(n,si){if(!n)return 0;let q=Math.floor(Math.abs(n)/18),r=Math.abs(n)%18,z=q+(si<=r?1:0);return n<0?-z:z}
 function rel(m){let ids=[...m.a,...m.b],v=ids.map(x=>ch(x,m.course)).filter(x=>x!=null),mn=Math.min(...v),o={};ids.forEach(x=>o[x]=ch(x,m.course)==null?null:ch(x,m.course)-mn);return o}
 function calcCH(index,cid){let c=C(cid),par=c.pars.reduce((a,b)=>a+b,0);return Math.round(index*(c.slope/113)+(c.rating-par))}function saveHandicapSnapshot(){let z={};D.players.forEach(p=>z[p.id]={index:p.index,apple:p.apple,bald:p.bald,brights:p.brights});localStorage.setItem(HKEY,JSON.stringify(z))}function alt(ids,c){let x=ids.map(i=>ch(i,c));if(x.length!=2||x.some(v=>v==null))return null;x.sort((a,b)=>a-b);return Math.round(.6*x[1]+.4*x[0])}
@@ -77,4 +104,4 @@ async function deleteMedia(id,pathEnc){if(!confirm("Delete this photo/video?"))r
 window.submitCTP=submitCTP;window.deleteCTP=deleteCTP;window.deleteMedia=deleteMedia;window.openMediaViewer=openMediaViewer;
 mediaOptions();document.getElementById("mediaUpload").onclick=uploadMedia;
 let loading=false;async function load(){if(loading)return;loading=true;try{let [a,b,c,h]=await Promise.all([sb.from("matches").select("*").eq("event_id","lake-lure-2026"),sb.from("hole_scores").select("*"),sb.from("team_hole_scores").select("*"),sb.from("player_handicaps").select("*").eq("event_id","lake-lure-2026")]);if(a.error||b.error||c.error)throw(a.error||b.error||c.error);a.data?.forEach(r=>{let m=M.find(x=>x.id===r.id);if(m){m.a=r.team_a||[];m.b=r.team_b||[]}});S={};b.data?.forEach(r=>S[`${r.match_id}:${r.hole}:${r.player_id}`]=r.gross);c.data?.forEach(r=>S[`${r.match_id}:${r.hole}:${r.team}`]=r.gross);if(!h.error){h.data?.forEach(r=>{let p=P(r.player_id);if(p){p.index=Number(r.handicap_index);p.apple=r.apple;p.bald=r.bald;p.brights=r.brights}});saveHandicapSnapshot()}sync.textContent="● Supabase connected";render()}catch(e){sync.textContent="Setup error: "+e.message}finally{loading=false}}
-function startIntro(){let replay=new URLSearchParams(location.search).get("intro")==="1";if(!replay&&localStorage.getItem("ll-intro-seen-845"))return;intro.classList.add("on");localStorage.setItem("ll-intro-seen-845","1");setTimeout(()=>intro.classList.add("leaving"),5400);setTimeout(()=>intro.classList.remove("on","leaving"),6100)}skipIntro.onclick=()=>intro.classList.remove("on");skipRound.onclick=()=>roundIntro.classList.remove("on");render();showView(localStorage.getItem(LS.view)||"cup");startIntro();load();sb.channel("live").on("postgres_changes",{event:"*",schema:"public",table:"hole_scores"},safeLoad).on("postgres_changes",{event:"*",schema:"public",table:"team_hole_scores"},safeLoad).on("postgres_changes",{event:"*",schema:"public",table:"matches"},safeLoad).on("postgres_changes",{event:"*",schema:"public",table:"player_handicaps"},safeLoad).on("postgres_changes",{event:"*",schema:"public",table:"contest_settings"},loadCTP).on("postgres_changes",{event:"*",schema:"public",table:"ctp_entries"},loadCTP).on("postgres_changes",{event:"*",schema:"public",table:"media_gallery"},loadMedia).subscribe();setInterval(()=>{if(!document.hidden)safeLoad()},10000);document.addEventListener("visibilitychange",()=>{if(!document.hidden)safeLoad()});window.addEventListener("pageshow",safeLoad);window.addEventListener("focus",safeLoad);
+function startIntro(){let replay=new URLSearchParams(location.search).get("intro")==="1";if(!replay&&localStorage.getItem("ll-intro-seen-845"))return;intro.classList.add("on");localStorage.setItem("ll-intro-seen-845","1");setTimeout(()=>intro.classList.add("leaving"),5400);setTimeout(()=>intro.classList.remove("on","leaving"),6100)}skipIntro.onclick=()=>intro.classList.remove("on");skipRound.onclick=()=>roundIntro.classList.remove("on");render();showView(localStorage.getItem(LS.view)||"cup");startIntro();load();sb.channel("live").on("postgres_changes",{event:"*",schema:"public",table:"hole_scores"},safeLoad).on("postgres_changes",{event:"*",schema:"public",table:"team_hole_scores"},safeLoad).on("postgres_changes",{event:"*",schema:"public",table:"matches"},safeLoad).on("postgres_changes",{event:"*",schema:"public",table:"player_handicaps"},safeLoad).on("postgres_changes",{event:"*",schema:"public",table:"contest_settings"},loadCTP).on("postgres_changes",{event:"*",schema:"public",table:"ctp_entries"},loadCTP).on("postgres_changes",{event:"*",schema:"public",table:"media_gallery"},loadMedia).subscribe();setInterval(()=>{if(!document.hidden)safeLoad()},10000);document.addEventListener("visibilitychange",()=>{if(!document.hidden){safeLoad();checkAppRelease()}});window.addEventListener("pageshow",()=>{safeLoad();checkAppRelease()});window.addEventListener("focus",()=>{safeLoad();checkAppRelease()});setTimeout(checkAppRelease,1200);setInterval(checkAppRelease,60000);
