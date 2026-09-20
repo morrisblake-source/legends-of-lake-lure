@@ -168,3 +168,30 @@ url("lake-lure-scene.jpg") center/cover no-repeat!important}
 /* UPDATE 8.4 — Contests, Pics/Vids, Home Screen icon */
 nav{overflow-x:auto;-webkit-overflow-scrolling:touch;justify-content:flex-start;padding:0 max(4px,calc((100vw - 760px)/2));z-index:8}nav button{flex:0 0 auto;padding:0 14px;white-space:nowrap}@media(max-width:600px){nav button{padding:0 11px;font-size:12px}}
 .ctpcard>small{color:#a27d3f;font-weight:900}.ctpcard h3{margin:5px 0 10px}.ctpleader{background:#123c2d;color:#fff;border-radius:12px;padding:14px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:3px 10px}.ctpleader span{grid-column:1/-1;color:#dec78d;font-size:9px;font-weight:900;letter-spacing:1.2px}.ctpleader b{font:700 19px Georgia,serif}.ctpleader strong{font-size:22px}.ctpcard details{margin-top:12px}.ctpcard summary{font-size:12px;font-weight:800;cursor:pointer}.ctplist{margin-top:8px}.ctplist>div{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:8px 0;border-top:1px solid #eee;font-size:13px}.ctplist button,.mediaDelete{border:1px solid #ddd;background:#fff;border-radius:8px;padding:5px 8px;color:#8d201a}.ctpentry{border-top:1px solid #eee;margin-top:12px;padding-top:5px}.distanceinputs{display:grid;grid-template-columns:1fr 1fr;gap:8px}.contestadmin select{margin-top:8px}.optional{font-weight:400;color:#888}.mediaupload label{margin-top:13px}.mediaupload b{font:700 20px Georgia,serif}.mediagrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin-top:14px}.mediaitem{background:#fff;border:1px solid #e1e2dd;border-radius:14px;overflow:hidden}.mediaitem img,.mediaitem video{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;background:#111}.mediaitem>div{padding:11px}.mediaitem p{margin:5px 0;font-size:13px}.mediaitem small{display:block;color:#888;font-size:10px}.mediaDelete{margin-top:8px}.emptygallery{grid-column:1/-1;text-align:center}@media(max-width:650px){.mediagrid{grid-template-columns:1fr}.mediaitem img,.mediaitem video{max-height:70vh}}
+\n\n/* UPDATE 8.4.2 — clean two-stage water emergence */
+.introScene img{
+  top:61%!important;
+  width:min(39vw,190px)!important;
+  border-radius:22%!important;
+  box-shadow:0 14px 32px rgba(0,0,0,.24)!important;
+  filter:none!important;
+  transform-origin:50% 72%!important;
+  animation:emerge842 5.8s cubic-bezier(.22,.61,.36,1) forwards!important;
+}
+.introScene:before{top:62%!important;background:linear-gradient(180deg,rgba(10,58,68,.04),rgba(3,35,44,.16))!important}
+.introScene:after{top:62%!important;animation:ripple842 5.8s ease-out forwards!important}
+@keyframes emerge842{
+  0%{transform:translate3d(-50%,170px,0) scale(.62);opacity:.08}
+  8%{opacity:.55}
+  58%{transform:translate3d(-50%,-74px,0) scale(.62);opacity:1}
+  70%{transform:translate3d(-50%,-78px,0) scale(.62);opacity:1}
+  100%{transform:translate3d(-50%,-78px,0) scale(6.4);opacity:0}
+}
+@keyframes ripple842{
+  0%{opacity:0;transform:translateX(-50%) scale(.35)}
+  15%{opacity:.22;transform:translateX(-50%) scale(.6)}
+  48%{opacity:.7;transform:translateX(-50%) scale(1)}
+  68%{opacity:.2;transform:translateX(-50%) scale(1.45)}
+  100%{opacity:0;transform:translateX(-50%) scale(1.8)}
+}
+@media(max-width:600px){.introScene img{width:min(42vw,180px)!important}}
