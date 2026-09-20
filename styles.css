@@ -207,3 +207,9 @@ nav{overflow-x:auto;-webkit-overflow-scrolling:touch;justify-content:flex-start;
 /* UPDATE 8.4.6 — stable score entry + mobile next/save toolbar */
 .scorekeybar{position:fixed;left:0;right:0;bottom:0;z-index:60;display:none;align-items:center;justify-content:space-between;padding:8px 12px calc(8px + env(safe-area-inset-bottom));background:#f6f6f3;border-top:1px solid #d8d8d2;box-shadow:0 -5px 18px rgba(0,0,0,.10)}
 .scorekeybar.on{display:flex}.scorekeybar button{border:0;background:transparent;color:#123c2d;font-weight:900;font-size:15px;min-width:72px;min-height:38px;padding:7px 10px}.scorekeybar button:last-child{text-align:right;color:#9a742b}.scoreentry input:focus{outline:2px solid #d8b45b;outline-offset:1px}
+
+
+/* UPDATE 8.4.7 — simplified score keypad navigation */
+.scorekeybar{gap:12px;padding-left:14px;padding-right:14px}
+.scorekeybar button{flex:1;min-height:48px;border-radius:12px!important;background:#123c2d!important;color:#fff!important;text-align:center!important;font-size:15px!important;letter-spacing:.4px;padding:10px 12px!important}
+.scorekeybar button[data-score-next]{background:#b88b22!important;color:#fff!important}
