@@ -234,3 +234,6 @@ nav{overflow-x:auto;-webkit-overflow-scrolling:touch;justify-content:flex-start;
 
 /* 8.6 Add Player */
 .addplayerform{display:grid;grid-template-columns:1fr 1fr;gap:12px}.addplayerform label{font-size:12px;font-weight:700;color:#555}.addplayerform input,.addplayerform select{width:100%;margin-top:5px}.addplayerform .hcalc{grid-column:1/-1;background:#f7f7f4;border-radius:10px;padding:10px}@media(max-width:520px){.addplayerform{grid-template-columns:1fr}.addplayerform .hcalc{grid-column:1}.admintabs{overflow-x:auto;white-space:nowrap}}
+
+/* 8.6.1 Manage Players */
+.managedPlayers{margin-top:22px;border-top:1px solid #e5e5df;padding-top:14px}.managedPlayers h3{margin:0 0 8px;font:700 19px Georgia,serif;color:#123c2d}.managedPlayer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid #eee}.managedPlayer small{display:block;color:#777;margin-top:3px}.deletePlayer{border:1px solid #b3261e;background:#fff;color:#b3261e;border-radius:9px;padding:9px 12px;font-weight:800}
