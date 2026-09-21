@@ -234,3 +234,18 @@ nav{overflow-x:auto;-webkit-overflow-scrolling:touch;justify-content:flex-start;
 
 /* 8.6 Add Player */
 .addplayerform{display:grid;grid-template-columns:1fr 1fr;gap:12px}.addplayerform label{font-size:12px;font-weight:700;color:#555}.addplayerform input,.addplayerform select{width:100%;margin-top:5px}.addplayerform .hcalc{grid-column:1/-1;background:#f7f7f4;border-radius:10px;padding:10px}@media(max-width:520px){.addplayerform{grid-template-columns:1fr}.addplayerform .hcalc{grid-column:1}.admintabs{overflow-x:auto;white-space:nowrap}}
+
+
+/* UPDATE 8.6.2 — launch UI polish only */
+/* Cup scoreboard: stronger hierarchy; projection footnote remains unchanged. */
+.hero .cupteams{font-size:13px;font-weight:900}
+.hero .scoreline b{font-size:62px}
+.hero .scoreline strong,.hero .scoreline.projected strong{font-size:16px;font-weight:900;letter-spacing:.8px}
+/* Matches: four round selectors fill phone width on one row. */
+@media(max-width:600px){
+  #tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;overflow:visible;width:100%}
+  #tabs button{width:100%;padding:10px 3px;font-size:12px;text-align:center}
+  .hero .cupteams{font-size:12px;gap:44px}
+  .hero .scoreline b{font-size:54px}
+  .hero .scoreline strong,.hero .scoreline.projected strong{font-size:14px}
+}
