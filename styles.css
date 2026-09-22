@@ -254,3 +254,26 @@ nav{overflow-x:auto;-webkit-overflow-scrolling:touch;justify-content:flex-start;
 /* UPDATE 9.1 — player lore + golf-cart Cup scoreboard */
 .playerbio{margin:8px 0 18px;padding:14px 15px;border-left:4px solid #a27d3f;background:#f7f4ea;border-radius:0 10px 10px 0;font-size:14px;line-height:1.5;color:#29322e}.profiletitle{font:800 12px system-ui,-apple-system,sans-serif;color:#a27d3f;letter-spacing:.2px}.hero .cupteams{font-size:16px!important}.hero .scoreline{max-width:590px!important;grid-template-columns:1fr 145px 1fr!important}.hero .scoreline b{font-size:76px!important;line-height:1!important}.hero .scoreline strong,.hero .scoreline.projected strong{font-size:19px!important;letter-spacing:1px!important}.hero .scoreline.projected{padding-top:11px!important}
 @media(max-width:600px){.hero .cupteams{font-size:14px!important;gap:30px!important;margin-top:18px!important}.hero .scoreline{grid-template-columns:1fr 105px 1fr!important}.hero .scoreline b{font-size:64px!important}.hero .scoreline strong,.hero .scoreline.projected strong{font-size:16px!important}.playerbio{font-size:13px;padding:12px 13px}}
+
+/* UPDATE 9.6.5 — Cup hero polish + score-change animation */
+/* Presentation only: no scoring, handicap, Supabase, or match-state logic changes. */
+.hero{padding-top:245px!important;background-position:center 40%!important}
+.hero .cupteams{margin-top:0!important;font-size:17px!important;gap:54px!important}
+.hero .scoreline{max-width:650px!important;grid-template-columns:1fr 160px 1fr!important;margin-top:14px!important}
+.hero .scoreline b{font-size:84px!important;line-height:.95!important}
+.hero .scoreline strong,.hero .scoreline.projected strong{font-size:20px!important;letter-spacing:1px!important}
+.hero .scoreline.projected{border-top:0!important;padding-top:0!important;margin-top:14px!important}
+.hero .projectionnote{margin-top:26px!important;margin-bottom:8px!important}
+.hero em{display:block;margin-top:12px!important}
+.pointpulse{animation:pointpulse965 1s cubic-bezier(.2,.8,.25,1)}
+@keyframes pointpulse965{0%{transform:scale(1)}28%{transform:scale(1.28);text-shadow:0 0 22px currentColor}55%{transform:scale(.96)}76%{transform:scale(1.08)}100%{transform:scale(1);text-shadow:none}}
+@media(max-width:600px){
+  .hero{padding-top:225px!important;background-position:center 39%!important}
+  .hero .cupteams{font-size:15px!important;gap:38px!important;margin-top:0!important}
+  .hero .scoreline{grid-template-columns:1fr 120px 1fr!important;margin-top:15px!important}
+  .hero .scoreline b{font-size:72px!important}
+  .hero .scoreline strong,.hero .scoreline.projected strong{font-size:17px!important}
+  .hero .scoreline.projected{margin-top:13px!important}
+  .hero .projectionnote{margin-top:24px!important;margin-bottom:6px!important}
+  .hero em{margin-top:10px!important}
+}
