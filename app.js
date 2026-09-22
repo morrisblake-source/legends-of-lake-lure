@@ -1,6 +1,6 @@
 const D=LL;const LS={match:"ll-score-match",hole:"ll-score-hole",view:"ll-view",round:"ll-round",player:"ll-player"};const ADMIN_PIN="1961";const Y={"apple": [361, 531, 152, 387, 388, 505, 340, 194, 423, 428, 330, 376, 367, 168, 558, 390, 165, 562], "bald": [488, 169, 419, 142, 341, 151, 509, 348, 479, 384, 381, 152, 327, 373, 509, 160, 421, 472], "brights": [538, 397, 200, 365, 470, 213, 377, 388, 406, 368, 302, 380, 162, 508, 376, 178, 415, 532]};Object.keys(Y).forEach(k=>D.courses[k].yardages=Y[k]);
 
-const APP_RELEASE="8.6.2";
+const APP_RELEASE="9.1";
 let pendingReleaseReload=false,releaseCheckBusy=false;
 function canReloadForRelease(){
   if(scoreViewActive())return false;
