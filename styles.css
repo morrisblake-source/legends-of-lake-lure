@@ -277,3 +277,33 @@ nav{overflow-x:auto;-webkit-overflow-scrolling:touch;justify-content:flex-start;
   .hero .projectionnote{margin-top:24px!important;margin-bottom:6px!important}
   .hero em{margin-top:10px!important}
 }
+
+/* UPDATE 9.6.6 — Cup spacing, responsive score sizing, double pulse */
+/* Presentation only. Scoring/Supabase/match-state calculations are unchanged. */
+.hero{padding-top:218px!important;background-position:center 52%!important}
+.hero .cupteams{margin-top:0!important;font-size:17px!important;gap:54px!important}
+.hero .scoreline{margin-top:20px!important;grid-template-columns:1fr 160px 1fr!important}
+.hero .scoreline.projected{margin-top:20px!important}
+.hero .scoreline b{font-size:72px!important;line-height:.95!important;white-space:nowrap}
+.hero .scoreline b.scorewide{font-size:62px!important}
+.hero .projectionnote{margin-top:34px!important;margin-bottom:5px!important}
+.hero em{margin-top:8px!important}
+.pointpulse{animation:pointpulse966 2.15s cubic-bezier(.2,.8,.25,1)}
+@keyframes pointpulse966{
+  0%,100%{transform:scale(1);text-shadow:none}
+  18%{transform:scale(1.22);text-shadow:0 0 24px currentColor}
+  36%{transform:scale(.98);text-shadow:none}
+  58%{transform:scale(1.22);text-shadow:0 0 24px currentColor}
+  78%{transform:scale(.98);text-shadow:none}
+}
+@media(max-width:600px){
+  .hero{padding-top:200px!important;background-position:center 53%!important}
+  .hero .cupteams{font-size:15px!important;gap:38px!important;margin-top:0!important}
+  .hero .scoreline{grid-template-columns:1fr 112px 1fr!important;margin-top:19px!important}
+  .hero .scoreline.projected{margin-top:19px!important}
+  .hero .scoreline b{font-size:60px!important}
+  .hero .scoreline b.scorewide{font-size:50px!important}
+  .hero .scoreline strong,.hero .scoreline.projected strong{font-size:17px!important}
+  .hero .projectionnote{margin-top:32px!important;margin-bottom:4px!important}
+  .hero em{margin-top:7px!important}
+}
