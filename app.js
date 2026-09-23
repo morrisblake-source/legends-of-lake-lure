@@ -131,7 +131,7 @@ window.submitCTP=submitCTP;window.deleteCTP=deleteCTP;window.deleteMedia=deleteM
 mediaOptions();document.getElementById("mediaUpload").onclick=uploadMedia;
 let loading=false,loadPromise=null;async function load(){if(loading)return loadPromise;loading=true;loadPromise=(async()=>{try{let [a,b,c,h,ep]=await Promise.all([sb.from("matches").select("*").eq("event_id","lake-lure-2026"),sb.from("hole_scores").select("*"),sb.from("team_hole_scores").select("*"),sb.from("player_handicaps").select("*").eq("event_id","lake-lure-2026"),sb.from("event_players").select("*").eq("event_id","lake-lure-2026")]);if(a.error||b.error||c.error)throw(a.error||b.error||c.error);a.data?.forEach(r=>{let m=M.find(x=>x.id===r.id);if(m){m.a=r.team_a||[];m.b=r.team_b||[]}});S={};b.data?.forEach(r=>S[`${r.match_id}:${r.hole}:${r.player_id}`]=r.gross);c.data?.forEach(r=>S[`${r.match_id}:${r.hole}:${r.team}`]=r.gross);if(!ep.error){ep.data?.forEach(r=>{if(!P(r.player_id))D.players.push({id:r.player_id,name:`${r.first_name} ${r.last_name}`,team:r.team,sub:true,dynamic:true})})}if(!h.error){h.data?.forEach(r=>{let p=P(r.player_id);if(p){p.index=Number(r.handicap_index);p.apple=r.apple;p.bald=r.bald;p.brights=r.brights}});saveHandicapSnapshot()}sync.textContent="● Supabase connected";render()}catch(e){sync.textContent="Setup error: "+e.message}finally{loading=false}})();return loadPromise}
 
-// UPDATE 9.6.7 — first-tee countdown (display only)
+// UPDATE 9.6.8 — Cup countdown with seconds (display only)
 const FIRST_TEE_AT=new Date("2026-09-25T08:20:00-04:00").getTime();
 const FIRST_TEE_BANNER_END=new Date("2026-09-25T09:20:00-04:00").getTime();
 function updateTeeCountdown(){
@@ -140,9 +140,12 @@ function updateTeeCountdown(){
   if(now>=FIRST_TEE_BANNER_END){el.hidden=true;el.textContent="";return}
   el.hidden=false;
   if(now>=FIRST_TEE_AT){el.innerHTML='<span>THE 2026 LAKE LURE CUP IS UNDERWAY</span>';return}
-  let mins=Math.ceil((FIRST_TEE_AT-now)/60000),days=Math.floor(mins/1440);mins-=days*1440;let hrs=Math.floor(mins/60);mins-=hrs*60;
-  let parts=[];if(days)parts.push(`${days} DAY${days===1?"":"S"}`);if(days||hrs)parts.push(`${hrs} HR`);parts.push(`${mins} MIN`);
-  el.innerHTML=`<small>FIRST TEE · APPLE VALLEY · 8:20 AM</small><b>${parts.join(" · ")}</b>`;
+  let secs=Math.max(0,Math.floor((FIRST_TEE_AT-now)/1000));
+  const days=Math.floor(secs/86400);secs-=days*86400;
+  const hrs=Math.floor(secs/3600);secs-=hrs*3600;
+  const mins=Math.floor(secs/60);secs-=mins*60;
+  let parts=[];if(days)parts.push(`${days} DAY${days===1?"":"S"}`);if(days||hrs)parts.push(`${hrs} HR`);parts.push(`${mins} MIN`);parts.push(`${String(secs).padStart(2,"0")} SEC`);
+  el.innerHTML=`<small>COUNTDOWN TO THE CUP</small><b>${parts.join(" · ")}</b>`;
 }
-updateTeeCountdown();setInterval(updateTeeCountdown,15000);
+updateTeeCountdown();setInterval(updateTeeCountdown,1000);
 function startIntro(){let replay=new URLSearchParams(location.search).get("intro")==="1";if(!replay&&localStorage.getItem("ll-intro-seen-845"))return;intro.classList.add("on");localStorage.setItem("ll-intro-seen-845","1");setTimeout(()=>intro.classList.add("leaving"),5400);setTimeout(()=>intro.classList.remove("on","leaving"),6100)}skipIntro.onclick=()=>intro.classList.remove("on");skipRound.onclick=()=>roundIntro.classList.remove("on");startIntro();load().then(()=>showView(localStorage.getItem(LS.view)||"cup"));sb.channel("live").on("postgres_changes",{event:"*",schema:"public",table:"hole_scores"},safeLoad).on("postgres_changes",{event:"*",schema:"public",table:"team_hole_scores"},safeLoad).on("postgres_changes",{event:"*",schema:"public",table:"matches"},safeLoad).on("postgres_changes",{event:"*",schema:"public",table:"player_handicaps"},safeLoad).on("postgres_changes",{event:"*",schema:"public",table:"event_players"},safeLoad).on("postgres_changes",{event:"*",schema:"public",table:"contest_settings"},loadCTP).on("postgres_changes",{event:"*",schema:"public",table:"ctp_entries"},loadCTP).on("postgres_changes",{event:"*",schema:"public",table:"media_gallery"},loadMedia).subscribe();setInterval(()=>{if(!document.hidden)safeLoad()},10000);document.addEventListener("visibilitychange",()=>{if(!document.hidden){safeLoad();checkAppRelease()}});window.addEventListener("pageshow",()=>{safeLoad();checkAppRelease()});window.addEventListener("focus",()=>{safeLoad();checkAppRelease()});setTimeout(checkAppRelease,1200);setInterval(checkAppRelease,60000);
