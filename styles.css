@@ -307,3 +307,9 @@ nav{overflow-x:auto;-webkit-overflow-scrolling:touch;justify-content:flex-start;
   .hero .projectionnote{margin-top:32px!important;margin-bottom:4px!important}
   .hero em{margin-top:7px!important}
 }
+
+
+/* UPDATE 9.6.7 — first tee countdown */
+.teecountdown{position:absolute;top:62px;left:50%;transform:translateX(-50%);z-index:4;min-width:280px;max-width:92%;padding:7px 14px;border-radius:12px;background:rgba(7,45,33,.72);color:#fff;text-align:center;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);box-shadow:0 3px 12px rgba(0,0,0,.16)}
+.teecountdown[hidden]{display:none!important}.teecountdown small{display:block;color:#dec78d;font-size:10px;font-weight:900;letter-spacing:1px;line-height:1.2}.teecountdown b,.teecountdown>span{display:block;margin-top:2px;font-size:14px;font-weight:900;letter-spacing:.5px;line-height:1.2}.teecountdown>span{margin-top:0;color:#fff4d2}
+@media(max-width:600px){.teecountdown{top:56px;min-width:250px;padding:6px 10px}.teecountdown small{font-size:9px}.teecountdown b,.teecountdown>span{font-size:12px}}
