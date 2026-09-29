@@ -1,0 +1,9 @@
+LEGENDS OF LAKE LURE — UPDATE 10.1
+
+- Added Draft / Teams boards to 2024, 2025 and 2026 History pages.
+- Standardized MG to Matt Genett in historical draft results.
+- Added 2026 Draft-Day Debacle / Austin-for-Loman trade footnote.
+- Removed the extra singles-loss aside from Brent Bundrick's championship line.
+- Matched historical Team Bundrick result red to the live Matches-page red (#b3261e).
+- Replaced one-letter scorecard Result values with running Match Status (AS / Team 1 UP / Team 2 UP).
+- High/Low scorecards show running point margin because two points are available per hole.
