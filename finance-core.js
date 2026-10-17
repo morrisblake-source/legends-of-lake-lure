@@ -29,13 +29,13 @@
     }else if(input.kind==='bet'){
       payers=ids(input.payers||[]);recipients=ids(input.recipients||[]);
       if(!payers.length||!recipients.length)throw Error('Choose who owes and who gets paid.');
-      if(payers.some(id=>recipients.includes(id)))throw Error('A player cannot be on both sides of the same bet.');
+      if(input.betMode==='individual'&&payers.some(id=>recipients.includes(id)))throw Error('A player cannot be on both sides of an individual bet.');
       if(!['individual','team'].includes(input.betMode))throw Error('Choose individual or team bet.');
       if(input.betMode==='individual'&&(payers.length!==1||recipients.length!==1))throw Error('Individual bets need one player on each side.');
       total=amount*payers.length;
       if(total>MAX)throw Error('The total bet cannot exceed $1,000,000.00.');
       shares=divide(total,recipients);participants=ids([...payers,...recipients]);
-      net=Object.fromEntries(participants.map(id=>[id,payers.includes(id)?-amount:shares[id]]));
+      net=Object.fromEntries(participants.map(id=>[id,(shares[id]||0)-(payers.includes(id)?amount:0)]));
     }else throw Error('Choose Split Cost or Bet.');
     return {kind:input.kind,author,description:String(input.description).trim(),amount_cents:amount,total_cents:total,participants,recipients,payers,shares,net,betMode:input.kind==='bet'?input.betMode:null};
   }
