@@ -125,3 +125,18 @@ It is a finance sandbox with the navigation position shown, not a replacement fo
 full golf-page integration testing. Clear sandbox entries removes only test data.
 
 Run `node --test tests/*.test.cjs` for the release and finance regression checks.
+
+## Settle Up (10.3.0)
+
+Inside Weekend Balances, Settle Up refreshes saved requests and produces a
+read-only payment plan. It preserves net balances and uses exact subset dynamic
+programming to maximize disjoint zero-sum groups, giving the minimum transaction
+count (nonzero players minus zero-sum groups). It supports up to 20 nonzero player
+balances, above the current trip roster; it shows an error beyond that limit rather
+than claiming an approximate result is minimal. All math uses integer cents.
+
+The plan shows transaction count, net total to settle and who pays whom. It moves
+no money, writes no settlement/payment records, and leaves original requests intact.
+A balance change invalidates an open plan; refresh failure hides it. Unsaved requests
+are excluded. No database migration is needed. Tests include a separate exhaustive
+solver as an oracle for randomized small cases and a 20-player performance case.
