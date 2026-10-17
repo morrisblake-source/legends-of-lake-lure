@@ -1,27 +1,97 @@
-# Legends of Lake Lure — Live Scoring Site
+# Legends of Lake Lure
 
-## What is already working
-- Mobile-first Cup dashboard
-- 2026 Apple Valley locked pairings
-- Gross-score entry for all four players
-- High/Low match calculation using relative course handicaps
-- Player database with GHIN links, current handicaps/course handicaps, and historical Lake Lure records
-- Fuller → Nate Pratt injury toggle
-- 2026 weekend pairing card
-- Local persistence in the browser
+Golf trip website with live scoring, player profiles, historical scorecards,
+contests, and a photo/video gallery.
 
-## Important scoring configuration
-The Apple Valley scoring engine currently uses hole number 1–18 as a temporary stroke-index order. Before live use, replace that with Apple Valley's official handicap/stroke index for each hole. This is deliberately not guessed.
+- Live site: https://morrisblake-source.github.io/legends-of-lake-lure/
+- Repository: https://github.com/morrisblake-source/legends-of-lake-lure
+- Proposed release: **10.1.1** (not live until approved and merged).
+- Verified production baseline: **10.1**, commit `5df14b04c77438d2b4158263a23cc88ef4eeac04`.
 
-## Shared live scoring
-The prototype works immediately on one device using localStorage. For all golfers to see the same live scores, create a Supabase project and run `supabase-schema.sql`, then replace the localStorage adapter in `app.js` with Supabase reads/writes/realtime subscriptions. The database schema is included.
+## Architecture
 
-## Deployment
-This is a static site, so it can be deployed to Vercel, Netlify, GitHub Pages, or any static host by uploading this folder. `index.html` is the entry point.
+No package installation or bundler is required. GitHub Pages serves the repository
+root using its generated Pages/Jekyll build and deployment workflow.
 
-## Next recommended production steps
-1. Add official hole pars and stroke indexes for all three courses.
-2. Confirm whether Fuller or Pratt is playing.
-3. Add the final Bald, Bright's Better Ball, and Singles matchups.
-4. Connect Supabase and add a simple trip PIN/authentication.
-5. Add completed 2024/2025 match-level history if desired, beyond the player totals already loaded.
+| File | Responsibility |
+| --- | --- |
+| `index.html` | Page structure, navigation, script/style references |
+| `app.js` | UI, scoring calculations, Supabase access, admin and release checks |
+| `data.js` | Initial players, courses, pairings, and Supabase browser configuration |
+| `styles.css` | Mobile-first layout and styling |
+| `release.json` | Advertised app version checked by running browsers |
+| `manifest.webmanifest` | Installable web app identity, scope and icons |
+
+The Supabase JavaScript v2 client loads from jsDelivr. Supabase provides database
+reads/writes, realtime subscriptions, and gallery storage. Browser localStorage
+remembers navigation and handicap snapshots; sessionStorage holds the admin/scoring
+unlock state. The 2026 event is marked complete and scoring is locked by default.
+
+The app uses `matches`, `hole_scores`, `team_hole_scores`, `players`,
+`event_players`, `player_handicaps`, `contest_settings`, `ctp_entries`, and
+`media_gallery`, plus the `trip-media` storage bucket. Event-scoped operations use
+`lake-lure-2026`; individual/team hole-score reads currently load their full tables.
+Some history and draft details are embedded in app code.
+
+### Database and access
+
+`supabase-schema.sql` is an **incomplete historical prototype**, not a current
+migration or restore script. Referenced `SUPABASE-SETUP-*` files are not present in
+this repository. Do not run the prototype SQL against production or recreate tables
+from guesses. Current deployed schema and row-level security policies must be
+inspected in Supabase before preparing any database work.
+
+The browser admin PIN and scoring lock are UI controls, not database authorization.
+Real access enforcement belongs in Supabase policies/authentication. Never place a
+service-role key, secret key or privileged credential in this public repository.
+Do not delete or rewrite production scores/history without explicit approval and a
+verified data backup. This repository does not contain a production database backup.
+
+## Development and verification
+
+Start from the latest `main`, preserve a rollback checkpoint, and use a feature
+branch. For a local static preview:
+
+```sh
+python3 -m http.server 8000
+```
+
+Open http://localhost:8000/. **Local previews still use the configured production
+Supabase project.** For any write testing, substitute an isolated test backend or
+stub network requests. Do not save scores, change pairings/handicaps, submit contests,
+or upload/delete media against production during testing.
+
+Run the offline checks (Node.js required):
+
+```sh
+node --check app.js
+node --check data.js
+node --test tests/foundation.test.cjs
+```
+
+Before merging, check phone and desktop layouts, navigation, profiles, historical
+scorecards, scoring calculations, and the affected workflows. Write paths require
+an isolated environment. Syntax/unit checks alone do not prove all app behavior.
+
+## Release and deployment
+
+1. Prepare changes on a feature branch and show a diff/pull request with validation.
+2. Keep `APP_RELEASE` in `app.js` and `release.json` identical. Bump local script,
+   stylesheet and manifest cache versions in `index.html` when shipping changes.
+3. Obtain approval before merging or publishing. A push/merge to `main` triggers
+   the existing GitHub Pages build/deployment; no manual ZIP upload is needed.
+4. Check the Pages workflow result and compare live release/app assets with the
+   approved commit. Verify Supabase connectivity and preserved final results.
+5. For a frontend rollback, revert the approved change on `main` and verify the
+   resulting Pages deployment. A frontend rollback does not restore database data.
+
+The release checker polls every minute and checks on startup, focus, and visibility
+changes. It defers reloads during score entry or while an input/select is focused.
+Release 10.1.1 attempts each advertised version only once per tab/session; a matching
+`release` URL parameter also prevents repeated reloads when sessionStorage is blocked.
+If a stale asset survives that attempt, the site stays usable instead of repeatedly
+refreshing. After a failed automatic update, a manual browser reload may be needed.
+The manifest adds app identity/icons; it does not provide offline functionality.
+
+`README-8.2.txt` and `UPDATE-10.1.txt` are historical release notes. This README is
+the current development/deployment guide.

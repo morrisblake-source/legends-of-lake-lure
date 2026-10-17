@@ -1,17 +1,26 @@
 const D=LL;const LS={match:"ll-score-match",hole:"ll-score-hole",view:"ll-view",round:"ll-round",player:"ll-player"};const ADMIN_PIN="1961";const Y={"apple": [361, 531, 152, 387, 388, 505, 340, 194, 423, 428, 330, 376, 367, 168, 558, 390, 165, 562], "bald": [488, 169, 419, 142, 341, 151, 509, 348, 479, 384, 381, 152, 327, 373, 509, 160, 421, 472], "brights": [538, 397, 200, 365, 470, 213, 377, 388, 406, 368, 302, 380, 162, 508, 376, 178, 415, 532]};Object.keys(Y).forEach(k=>D.courses[k].yardages=Y[k]);
 
-const APP_RELEASE="10.1";
+const APP_RELEASE="10.1.1";
 const EVENT_COMPLETE=true;
 const scoringUnlocked=()=>sessionStorage.getItem("ll-scoring-unlocked-2026")==="1";
-let pendingReleaseReload=false,releaseCheckBusy=false;
+const RELEASE_ATTEMPT_KEY="ll-release-reload-attempt";
+let pendingReleaseReload=null,releaseCheckBusy=false;
 function canReloadForRelease(){
   if(scoreViewActive())return false;
   const a=document.activeElement;
   return !(a&&["INPUT","TEXTAREA","SELECT"].includes(a.tagName));
 }
-function reloadForRelease(){
+// Try each advertised release once per tab. The URL guard also works when
+// sessionStorage is unavailable or a stale app survives the first reload.
+function reloadForRelease(version){
+  pendingReleaseReload=null;
   const u=new URL(location.href);
-  u.searchParams.set("release",String(Date.now()));
+  if(u.searchParams.get("release")===version)return;
+  try{
+    if(sessionStorage.getItem(`${RELEASE_ATTEMPT_KEY}:${version}`)==="1")return;
+    sessionStorage.setItem(`${RELEASE_ATTEMPT_KEY}:${version}`,"1");
+  }catch(e){}
+  u.searchParams.set("release",version);
   location.replace(u.toString());
 }
 async function checkAppRelease(){
@@ -21,13 +30,14 @@ async function checkAppRelease(){
     const r=await fetch(`release.json?check=${Date.now()}`,{cache:"no-store"});
     if(!r.ok)return;
     const j=await r.json();
-    if(j.version&&j.version!==APP_RELEASE){
-      if(canReloadForRelease())reloadForRelease();
-      else pendingReleaseReload=true;
-    }
+    if(typeof j.version!=="string"||!j.version.trim())return;
+    const version=j.version.trim();
+    if(version===APP_RELEASE){pendingReleaseReload=null;return}
+    if(canReloadForRelease())reloadForRelease(version);
+    else pendingReleaseReload=version;
   }catch(e){}finally{releaseCheckBusy=false}
 }
-function applyPendingRelease(){if(pendingReleaseReload&&canReloadForRelease())reloadForRelease()}
+function applyPendingRelease(){if(pendingReleaseReload&&canReloadForRelease())reloadForRelease(pendingReleaseReload)}
 const sb=supabase.createClient(D.url,D.key);const HKEY="ll-handicap-snapshot-2026";let HS=JSON.parse(localStorage.getItem(HKEY)||"{}");D.players.forEach(p=>{if(HS[p.id])Object.assign(p,HS[p.id])});let M=structuredClone(D.matches),S={},round=+(localStorage.getItem(LS.round)||1),viewReady=false;
 const P=id=>D.players.find(p=>p.id===id),C=id=>D.courses[id],names=a=>a.length?a.map(x=>P(x)?.name.split(" ").pop()).join(" / "):"TBD",fn=f=>({high_low:"High / Low",modified_alt:"Modified Alternate Shot",better_ball:"Better Ball",singles:"Singles"}[f]),ch=(id,c)=>{let p=P(id),v=p?.[c];if(v!=null)return v;let co=C(c);if(p?.index==null||!co)return null;let par=co.pars.reduce((a,b)=>a+b,0);return Math.round(p.index*(co.slope/113)+(co.rating-par))};
 function showView(v){document.querySelectorAll("nav button,.view").forEach(x=>x.classList.remove("on"));document.querySelector(`nav button[data-v="${v}"]`)?.classList.add("on");document.getElementById(v)?.classList.add("on");localStorage.setItem(LS.view,v);viewReady=true;if(v==="cup")render();if(v==="score")load();if(v==="history")renderHistory();if(v==="contests")loadCTP();if(v==="media")loadMedia();if(v!=="score"){applyPendingRelease();checkAppRelease()}}document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>showView(b.dataset.v));
