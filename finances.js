@@ -4,7 +4,7 @@
 const F=window.LLFinance, host=document.getElementById('financeRoot');if(!host)return;
 const demo=window.LL_FINANCE_SANDBOX===true, KEY='ll-finances-sandbox-v1', EVENT='lake-lure-2026';
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let records=[],editing=null,busy=false,ready=false,dirty=false,loadBusy=false;
+let records=[],editing=null,busy=false,ready=false,dirty=false,loadBusy=false,settlementFingerprint=null;
 let roster='';
 let people=()=>[...LL.players].sort((a,b)=>a.name.localeCompare(b.name));
 const name=id=>people().find(p=>p.id===id)?.name||id;
@@ -14,7 +14,7 @@ const options=()=>'<option value="">Select player</option>'+people().map(p=>`<op
 const checks=group=>`<div class="financeChecks">${people().map(p=>`<label><input type="checkbox" data-fin-group="${group}" value="${escape(p.id)}"><span>${escape(p.name)}</span></label>`).join('')}</div>`;
 host.innerHTML=`<div class="financeHeading"><div><small>THE WEEKEND LEDGER</small><h1>Finances</h1><p>Split the bill. Record the bet. Settle up Sunday.</p></div><span class="financeBadge">${demo?'SANDBOX':'2026 CUP'}</span></div>
 ${demo?'<div class="financeNotice"><b>Test mode</b> · Entries stay in this browser and do not affect the real weekend balances.</div>':''}
-<details class="card financeBalances"><summary>Weekend Balances <span id="financeBalanceSummary">No entries yet</span></summary><p class="muted">All active expenses and bets combined. Positive balances get money back; negative balances owe.</p><div id="financeBalanceList"></div></details>
+<details class="card financeBalances"><summary>Weekend Balances <span id="financeBalanceSummary">No entries yet</span></summary><p class="muted">All active expenses and bets combined. Positive balances get money back; negative balances owe.</p><div id="financeBalanceList"></div><button id="financeSettle" class="primary" type="button" disabled>Settle Up</button><p id="financeSettleMessage" class="muted" role="status" aria-live="polite"></p><details id="financeSettlement" class="financeSettlement" hidden><summary>Who pays whom</summary><div id="financeSettlementPlan"></div><p class="muted">These payments settle the current net balances. You may pay someone different from the person on the original request. No money is moved or marked paid.</p></details></details>
 <div class="card financeComposer"><div class="financeSectionHead"><h2 id="financeFormTitle">New request</h2><button id="financeReset" type="button">Clear</button></div>
 <form id="financeForm"><div class="financeFields"><label>Your name<select id="financeAuthor" required>${options()}</select></label><label>Request type<select id="financeKind"><option value="split">Split Cost</option><option value="bet">Bet</option></select></label></div>
 <label>Description<input id="financeDescription" maxlength="160" required placeholder="Saturday groceries, Sunday match…"></label>
@@ -47,7 +47,7 @@ function groups(){
 }
 function betBreakdown(c,id){return `<small class="financeAllocation">Contributes ${F.money(c.payers.includes(id)?c.amount_cents:0)} · Receives ${F.money(c.shares[id]||0)}</small>`;}
 function preview(){
-  groups();el('financeSave').disabled=!ready||busy;
+  groups();el('financeSave').disabled=!ready||busy;el('financeSettle').disabled=!ready||busy||loadBusy;
   try{
     const c=F.calculate(input()),split=c.kind==='split';
     const rows=split?c.participants.map(id=>`<div><span>${escape(name(id))}${id===c.author?' · paid the bill':''}</span><b>${F.money(c.shares[id])} share</b></div>`):c.participants.map(id=>`<div><span>${escape(name(id))}${betBreakdown(c,id)}</span><b>${c.net[id]<0?'Net owes':c.net[id]>0?'Net gets':'Even ·'} ${F.money(Math.abs(c.net[id]))}</b></div>`);
@@ -56,6 +56,7 @@ function preview(){
 }
 function render(){
   const net=F.balances(records),active=records.filter(r=>!r.cancelled),outstanding=Object.values(net).filter(n=>n>0).reduce((a,b)=>a+b,0);
+  if(settlementFingerprint!==null&&settlementFingerprint!==JSON.stringify(net)){el('financeSettlement').hidden=true;el('financeSettlementPlan').innerHTML='';el('financeSettleMessage').textContent='Balances changed. Click Settle Up for a new payment plan.';settlementFingerprint=null;}
   el('financeBalanceSummary').textContent=`${active.length} request${active.length===1?'':'s'} · ${F.money(outstanding)} to settle`;
   const ids=[...new Set([...people().map(p=>p.id),...Object.keys(net)])];
   el('financeBalanceList').innerHTML=ids.map(id=>`<div class="financeBalanceRow"><span>${escape(name(id))}</span><b class="${(net[id]||0)>0?'financeCredit':(net[id]||0)<0?'financeDebit':''}">${net[id]>0?'Gets back ':net[id]<0?'Owes ':'Settled · '}${F.money(Math.abs(net[id]||0))}</b></div>`).join('');
@@ -104,6 +105,20 @@ host.addEventListener('change',e=>{
 el('financeForm').addEventListener('input',()=>{dirty=true;preview();});
 el('financeReset').onclick=()=>{if(!dirty||confirm('Clear the unsaved request?'))reset();};el('financeCancelEdit').onclick=reset;
 el('financeRefresh').onclick=load;
+el('financeSettle').onclick=async()=>{
+  if(busy||loadBusy)return;
+  el('financeSettle').disabled=true;el('financeSettleMessage').textContent='Refreshing balances…';
+  try{
+    await load();
+    if(!ready){el('financeSettlement').hidden=true;settlementFingerprint=null;el('financeSettleMessage').textContent='Could not refresh balances. Try again before settling.';return;}
+    const net=F.balances(records),plan=F.settle(net);
+    settlementFingerprint=JSON.stringify(net);
+    el('financeSettlementPlan').innerHTML=plan.payments.length?`<p><b>${plan.transaction_count} payment${plan.transaction_count===1?'':'s'} · ${F.money(plan.total_cents)} total</b></p><ol>${plan.payments.map(p=>`<li><span><b>${escape(name(p.from))}</b> pays <b>${escape(name(p.to))}</b></span><strong>${F.money(p.amount_cents)}</strong></li>`).join('')}</ol>`:'<p><b>Everyone is even. No payments needed.</b></p>';
+    el('financeSettleMessage').textContent='Calculated from the latest ledger with the fewest possible payments.';
+    el('financeSettlement').hidden=false;el('financeSettlement').open=true;
+  }catch(error){el('financeSettlement').hidden=true;settlementFingerprint=null;el('financeSettleMessage').textContent=error.message;}
+  finally{el('financeSettle').disabled=!ready||busy||loadBusy;}
+};
 el('financeLog').addEventListener('click',async e=>{
   const button=e.target.closest('[data-fin-action]');if(!button||busy)return;
   const row=records.find(r=>r.id===button.closest('[data-fin-entry]').dataset.finEntry);if(!row)return;

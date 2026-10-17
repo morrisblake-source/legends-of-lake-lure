@@ -40,5 +40,46 @@
     return {kind:input.kind,author,description:String(input.description).trim(),amount_cents:amount,total_cents:total,participants,recipients,payers,shares,net,betMode:input.kind==='bet'?input.betMode:null};
   }
   function balances(records){const net={};for(const r of records){if(r.cancelled)continue;const c=calculate(r.input);for(const [id,n]of Object.entries(c.net))net[id]=(net[id]||0)+n;}return net;}
-  return {cents,money,calculate,balances};
+  // Every connected payment group must sum to zero. Maximizing the number
+  // of disjoint zero-sum groups therefore minimizes payments: n - groups.
+  // Subset DP finds that exact maximum, rather than a greedy approximation.
+  function settle(net){
+    const entries=Object.entries(net).sort(([a],[b])=>a.localeCompare(b));
+    if(entries.some(([,v])=>!Number.isSafeInteger(v)))throw Error('Balances must be whole cents.');
+    const active=entries.filter(([,v])=>v!==0),n=active.length;
+    const total=active.filter(([,v])=>v>0).reduce((s,[,v])=>s+v,0);
+    const owed=active.filter(([,v])=>v<0).reduce((s,[,v])=>s-v,0);
+    if(!Number.isSafeInteger(total)||!Number.isSafeInteger(owed)||total!==owed)throw Error('Balances do not balance. Refresh the ledger and try again.');
+    if(!n)return {payments:[],total_cents:0,transaction_count:0};
+    if(n>20)throw Error('Exact settlement supports up to 20 players with a nonzero balance.');
+    const size=1<<n,sums=new Float64Array(size),groups=new Uint8Array(size),parent=new Uint8Array(size);
+    for(let mask=1;mask<size;mask++){
+      const low=mask&-mask,index=31-Math.clz32(low);
+      sums[mask]=sums[mask^low]+active[index][1];
+      let best=-1;
+      for(let bits=mask;bits;bits&=bits-1){
+        const bit=bits&-bits,i=31-Math.clz32(bit),score=groups[mask^bit];
+        if(score>best){best=score;parent[mask]=i;}
+      }
+      groups[mask]=best+(sums[mask]===0?1:0);
+    }
+    const order=[];for(let mask=size-1;mask;){const i=parent[mask];order.push(i);mask^=1<<i;}order.reverse();
+    const partitions=[];let partition=[],sum=0;
+    for(const i of order){partition.push(active[i]);sum+=active[i][1];if(sum===0){partitions.push(partition);partition=[];}}
+    const payments=[];
+    for(const part of partitions){
+      const debtors=part.filter(([,v])=>v<0).map(([id,v])=>({id,amount:-v}));
+      const creditors=part.filter(([,v])=>v>0).map(([id,v])=>({id,amount:v}));
+      let d=0,c=0;
+      while(d<debtors.length&&c<creditors.length){
+        const amount=Math.min(debtors[d].amount,creditors[c].amount);
+        payments.push({from:debtors[d].id,to:creditors[c].id,amount_cents:amount});
+        debtors[d].amount-=amount;creditors[c].amount-=amount;
+        if(!debtors[d].amount)d++;if(!creditors[c].amount)c++;
+      }
+    }
+    return {payments,total_cents:total,transaction_count:payments.length};
+  }
+  return {cents,money,calculate,balances,settle};
+
 });
