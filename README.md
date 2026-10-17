@@ -5,7 +5,7 @@ contests, and a photo/video gallery.
 
 - Live site: https://morrisblake-source.github.io/legends-of-lake-lure/
 - Repository: https://github.com/morrisblake-source/legends-of-lake-lure
-- Proposed release: **10.1.1** (not live until approved and merged).
+- Proposed release: **10.2.0** (not live until approved and merged).
 - Verified production baseline: **10.1**, commit `5df14b04c77438d2b4158263a23cc88ef4eeac04`.
 
 ## Architecture
@@ -95,3 +95,33 @@ The manifest adds app identity/icons; it does not provide offline functionality.
 
 `README-8.2.txt` and `UPDATE-10.1.txt` are historical release notes. This README is
 the current development/deployment guide.
+
+## Finances (10.2.0)
+
+The Finances tab follows Players. `finance-core.js` performs all ledger calculations
+in integer cents; `finances.js` renders split costs, individual/team bets, compact
+expandable balances, request details, revisions and soft cancellations. `finances.css`
+is scoped to this tab. No payment tracking or individual sign-ins are used.
+
+Split costs include the bill payer automatically. Bet amounts are per losing
+player, with total winnings divided equally among selected recipients. Uneven cents
+are assigned in sorted player-ID order. Every request nets to zero. All existing
+players (including substitutes) are available; missing shared player names can still
+be displayed by ID rather than dropping their balances.
+
+Shared storage requires explicit approval to install
+`migrations/20261017_finance_requests.sql`. It creates one new table only. The public
+client can read/insert/update this table, consistent with the requested no-sign-in
+flow; creator names are self-selected and UI edit restrictions do not verify identity.
+The table has no public delete policy. No SQL has been run as part of development.
+The production UI disables saving with a setup notice if the table is unavailable.
+Refresh or reopening the tab reloads shared data. Writes use revision matching to
+reject concurrent edits; the prior request is retained in its change history.
+
+The private testing site uses the same finance code with
+`window.LL_FINANCE_SANDBOX=true`, sanitized player names/IDs, and isolated browser
+storage. It does not load the Supabase client or make production database requests.
+It is a finance sandbox with the navigation position shown, not a replacement for
+full golf-page integration testing. Clear sandbox entries removes only test data.
+
+Run `node --test tests/*.test.cjs` for the release and finance regression checks.
