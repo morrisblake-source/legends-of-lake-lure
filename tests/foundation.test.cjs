@@ -5,12 +5,13 @@ const path = require('node:path');
 const vm = require('node:vm');
 const root = path.join(__dirname, '..');
 const app = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
+const CURRENT=app.match(/const APP_RELEASE="([^"]+)"/)[1];
 const releaseCode = app.slice(app.indexOf('const APP_RELEASE='), app.indexOf('const sb='));
 
-function browser({version='10.2', url='https://example.test/legends-of-lake-lure/?intro=1#cup', storage=new Map(), blocked=false}={}) {
+function browser({version='99.2', url='https://example.test/legends-of-lake-lure/?intro=1#cup', storage=new Map(), blocked=false}={}) {
   const navigations=[];
   let response={ok:true,json:async()=>({version})};
-  const context=vm.createContext({URL, Date, document:{activeElement:null},
+  const context=vm.createContext({URL, Date, window:{}, document:{activeElement:null},
     scoreViewActive:()=>false, sessionStorage:{
       getItem:key=>{if(blocked)throw Error('storage blocked');return storage.get(key);},
       setItem:(key,value)=>{if(blocked)throw Error('storage blocked');storage.set(key,value);}
@@ -23,7 +24,7 @@ function browser({version='10.2', url='https://example.test/legends-of-lake-lure
 }
 
 test('current release never reloads; malformed or failed checks are harmless', async()=>{
-  const b=browser({version:'10.1.1'});
+  const b=browser({version:CURRENT});
   await b.run('checkAppRelease()');
   for (const version of [null,42,'',{},'  ']) {
     b.respond({ok:true,json:async()=>({version})});
@@ -43,12 +44,12 @@ test('stale app reloads once, preserving the route, and later releases can updat
   const target=new URL(b.navigations[0]);
   assert.equal(target.searchParams.get('intro'),'1');
   assert.equal(target.hash,'#cup');
-  assert.equal(target.searchParams.get('release'),'10.2');
+  assert.equal(target.searchParams.get('release'),'99.2');
   const stale=browser({storage:b.storage});
   await stale.run('checkAppRelease()'); assert.equal(stale.navigations.length,0);
-  stale.respond({ok:true,json:async()=>({version:'10.3'})});
+  stale.respond({ok:true,json:async()=>({version:'99.3'})});
   await stale.run('checkAppRelease()'); assert.equal(stale.navigations.length,1);
-  stale.respond({ok:true,json:async()=>({version:'10.2'})});
+  stale.respond({ok:true,json:async()=>({version:'99.2'})});
   await stale.run('checkAppRelease()'); assert.equal(stale.navigations.length,1);
 });
 
@@ -75,7 +76,7 @@ test('score entry and focused controls defer updates until navigation is safe', 
 test('a matching release clears a deferred outdated update', async()=>{
   const b=browser(); b.context.scoreViewActive=()=>true;
   await b.run('checkAppRelease()');
-  b.respond({ok:true,json:async()=>({version:'10.1.1'})}); await b.run('checkAppRelease()');
+  b.respond({ok:true,json:async()=>({version:CURRENT})}); await b.run('checkAppRelease()');
   b.context.scoreViewActive=()=>false; b.run('applyPendingRelease()');
   assert.equal(b.navigations.length,0);
 });
@@ -85,7 +86,7 @@ test('overlapping release checks share a single in-flight request', async()=>{
   b.context.fetch=()=>{requests++;return new Promise(r=>{resolve=r;});};
   const first=b.run('checkAppRelease()'); await b.run('checkAppRelease()');
   assert.equal(requests,1);
-  resolve({ok:true,json:async()=>({version:'10.1.1'})}); await first;
+  resolve({ok:true,json:async()=>({version:CURRENT})}); await first;
 });
 
 test('release files agree and referenced local assets exist',()=>{
@@ -110,4 +111,11 @@ test('manifest stays within the GitHub Pages project and icons have declared dim
     const png=fs.readFileSync(path.join(root,icon.src));
     assert.equal(`${png.readUInt32BE(16)}x${png.readUInt32BE(20)}`,icon.sizes);
   }
+});
+
+test('unsaved finance drafts defer release updates after focus moves away',async()=>{
+ const b=browser();b.context.window.LLFinances={isDirty:()=>true};
+ await b.run('checkAppRelease()');assert.equal(b.navigations.length,0);
+ b.context.window.LLFinances.isDirty=()=>false;b.run('applyPendingRelease()');
+ assert.equal(b.navigations.length,1);
 });

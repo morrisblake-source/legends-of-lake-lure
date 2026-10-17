@@ -1,12 +1,12 @@
 const D=LL;const LS={match:"ll-score-match",hole:"ll-score-hole",view:"ll-view",round:"ll-round",player:"ll-player"};const ADMIN_PIN="1961";const Y={"apple": [361, 531, 152, 387, 388, 505, 340, 194, 423, 428, 330, 376, 367, 168, 558, 390, 165, 562], "bald": [488, 169, 419, 142, 341, 151, 509, 348, 479, 384, 381, 152, 327, 373, 509, 160, 421, 472], "brights": [538, 397, 200, 365, 470, 213, 377, 388, 406, 368, 302, 380, 162, 508, 376, 178, 415, 532]};Object.keys(Y).forEach(k=>D.courses[k].yardages=Y[k]);
 
-const APP_RELEASE="10.1.1";
+const APP_RELEASE="10.2.0";
 const EVENT_COMPLETE=true;
 const scoringUnlocked=()=>sessionStorage.getItem("ll-scoring-unlocked-2026")==="1";
 const RELEASE_ATTEMPT_KEY="ll-release-reload-attempt";
 let pendingReleaseReload=null,releaseCheckBusy=false;
 function canReloadForRelease(){
-  if(scoreViewActive())return false;
+  if(scoreViewActive()||window.LLFinances?.isDirty())return false;
   const a=document.activeElement;
   return !(a&&["INPUT","TEXTAREA","SELECT"].includes(a.tagName));
 }
@@ -40,7 +40,7 @@ async function checkAppRelease(){
 function applyPendingRelease(){if(pendingReleaseReload&&canReloadForRelease())reloadForRelease(pendingReleaseReload)}
 const sb=supabase.createClient(D.url,D.key);const HKEY="ll-handicap-snapshot-2026";let HS=JSON.parse(localStorage.getItem(HKEY)||"{}");D.players.forEach(p=>{if(HS[p.id])Object.assign(p,HS[p.id])});let M=structuredClone(D.matches),S={},round=+(localStorage.getItem(LS.round)||1),viewReady=false;
 const P=id=>D.players.find(p=>p.id===id),C=id=>D.courses[id],names=a=>a.length?a.map(x=>P(x)?.name.split(" ").pop()).join(" / "):"TBD",fn=f=>({high_low:"High / Low",modified_alt:"Modified Alternate Shot",better_ball:"Better Ball",singles:"Singles"}[f]),ch=(id,c)=>{let p=P(id),v=p?.[c];if(v!=null)return v;let co=C(c);if(p?.index==null||!co)return null;let par=co.pars.reduce((a,b)=>a+b,0);return Math.round(p.index*(co.slope/113)+(co.rating-par))};
-function showView(v){document.querySelectorAll("nav button,.view").forEach(x=>x.classList.remove("on"));document.querySelector(`nav button[data-v="${v}"]`)?.classList.add("on");document.getElementById(v)?.classList.add("on");localStorage.setItem(LS.view,v);viewReady=true;if(v==="cup")render();if(v==="score")load();if(v==="history")renderHistory();if(v==="contests")loadCTP();if(v==="media")loadMedia();if(v!=="score"){applyPendingRelease();checkAppRelease()}}document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>showView(b.dataset.v));
+function showView(v){document.querySelectorAll("nav button,.view").forEach(x=>x.classList.remove("on"));document.querySelector(`nav button[data-v="${v}"]`)?.classList.add("on");document.getElementById(v)?.classList.add("on");localStorage.setItem(LS.view,v);viewReady=true;if(v==="cup")render();if(v==="score")load();if(v==="history")renderHistory();if(v==="contests")loadCTP();if(v==="media")loadMedia();if(v==="finances")window.LLFinances?.load();if(v!=="score"){applyPendingRelease();checkAppRelease()}}document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>showView(b.dataset.v));
 function strokes(n,si){if(!n)return 0;let q=Math.floor(Math.abs(n)/18),r=Math.abs(n)%18,z=q+(si<=r?1:0);return n<0?-z:z}
 function rel(m){let ids=[...m.a,...m.b],v=ids.map(x=>ch(x,m.course)).filter(x=>x!=null),mn=Math.min(...v),o={};ids.forEach(x=>o[x]=ch(x,m.course)==null?null:ch(x,m.course)-mn);return o}
 function calcCH(index,cid){let c=C(cid),par=c.pars.reduce((a,b)=>a+b,0);return Math.round(index*(c.slope/113)+(c.rating-par))}function saveHandicapSnapshot(){let z={};D.players.forEach(p=>z[p.id]={index:p.index,apple:p.apple,bald:p.bald,brights:p.brights});localStorage.setItem(HKEY,JSON.stringify(z))}function alt(ids,c){let x=ids.map(i=>ch(i,c));if(x.length!=2||x.some(v=>v==null))return null;x.sort((a,b)=>a-b);return Math.round(.6*x[1]+.4*x[0])}
