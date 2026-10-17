@@ -1,3 +1,5 @@
+ARCHIVED RELEASE NOTES — see README.md for the current workflow.
+
 LEGENDS OF LAKE LURE — TEST UPDATE 8.2
 
 Upload/replace:

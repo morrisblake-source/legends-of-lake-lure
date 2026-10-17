@@ -1,3 +1,5 @@
+-- HISTORICAL PROTOTYPE ONLY: incomplete for the current app.
+-- Do not run against production. See README.md for database guidance.
 -- Optional Supabase backend for true multi-phone live scoring.
 create table if not exists public.events (id text primary key, name text not null, year int not null);
 create table if not exists public.players (id text primary key, name text not null, team text, handicap_index numeric, apple_ch int, bald_ch int, brights_ch int, ghin_url text);
