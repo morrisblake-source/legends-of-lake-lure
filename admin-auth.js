@@ -3,7 +3,10 @@
 'use strict';
 const senderReady=false; // Set true after custom SMTP delivery is configured and verified.
 const redirect='https://morrisblake-source.github.io/legends-of-lake-lure/';
-let role=null,email='',busy=false,request=0;
+let role=null,email='',busy=false,request=0,loginVersion=0,pendingEmail='';
+const pendingKey='ll-admin-code-email';
+function rememberPending(value){pendingEmail=value;try{if(value)sessionStorage.setItem(pendingKey,JSON.stringify({email:value,sent:Date.now()}));else{pendingEmail='';sessionStorage.removeItem(pendingKey);}}catch{}}
+function readPending(){try{const p=JSON.parse(sessionStorage.getItem(pendingKey)||'null');if(p&&typeof p.email==='string'&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.email)&&Date.now()-p.sent>=0&&Date.now()-p.sent<3600000)pendingEmail=p.email;else{pendingEmail='';sessionStorage.removeItem(pendingKey);}}catch{}return pendingEmail;}
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const overlay=document.createElement('div');overlay.id='adminSignIn';overlay.className='pinOverlay';overlay.hidden=true;document.body.append(overlay);
 const tools=document.createElement('div');tools.className='adminAccount';document.querySelector('#modal h2').after(tools);
@@ -26,18 +29,45 @@ async function refresh(){
   role=['owner','admin'].includes(response.data)?response.data:null;email=user.data.user.email||'';sync();return isAdmin();
  }catch(error){if(token===request){role=null;email='';sync();}return false;}
 }
-function showLogin(message=''){
- overlay.hidden=false;overlay.innerHTML=`<form class=pinBox><button type=button id=adminLoginClose aria-label="Close sign-in">×</button><h3>Sign in as Admin</h3><p>Use an approved email address. You’ll stay signed in on this device until you sign out or your session expires.</p><label>Email<input id=adminEmail type=email autocomplete=email required maxlength=254></label><button class=primary id=adminEmailLink>Send sign-in link</button><p id=adminLoginMessage role=status>${escape(message)}</p></form>`;
- overlay.querySelector('form').onsubmit=sendLink;document.getElementById('adminLoginClose').onclick=()=>overlay.hidden=true;
- document.getElementById('adminEmail').focus();
+function mountLogin(body){
+ loginVersion++;overlay.hidden=false;overlay.innerHTML=`<div class=pinBox><button type=button id=adminLoginClose aria-label="Close sign-in">×</button><h3>Sign in as Admin</h3>${body}</div>`;
+ document.getElementById('adminLoginClose').onclick=()=>{loginVersion++;overlay.hidden=true;};
 }
-async function sendLink(event){
- event.preventDefault();if(busy)return;const input=document.getElementById('adminEmail'),message=document.getElementById('adminLoginMessage'),button=document.getElementById('adminEmailLink');
- const value=input.value.trim().toLowerCase();if(!input.checkValidity()){input.reportValidity();return;}
+function showLogin(message=''){
+ if(readPending()){showCode(message||'Enter the code from your email here in this app.');return;}
+ mountLogin(`<form id=adminEmailForm><p>We’ll email you a code to enter here. You’ll stay signed in on this device until you sign out or your session expires.</p><label>Email<input id=adminEmail type=email autocomplete=email required maxlength=254></label><button class=primary id=adminEmailLink>Send sign-in code</button><p id=adminLoginMessage role=status>${escape(message)}</p></form>`);
+ document.getElementById('adminEmailForm').onsubmit=sendCode;document.getElementById('adminEmail').focus();
+}
+function showCode(message){
+ mountLogin(`<p>Code sent to <b>${escape(pendingEmail)}</b>. Return to this app after reading your email and enter the code below.</p><form id=adminCodeForm><label>Email verification code<input id=adminEmailCode type=text inputmode=numeric autocomplete=one-time-code pattern="[0-9]{6,10}" minlength=6 maxlength=10 required></label><button class=primary id=adminVerifyCode>Verify &amp; open Admin</button></form><p id=adminLoginMessage role=status>${escape(message)}</p><div class=pinActions><button type=button id=adminEmailLink>Send a new code</button><button type=button id=adminChangeEmail>Use another email</button></div>`);
+ document.getElementById('adminCodeForm').onsubmit=verifyCode;
+ document.getElementById('adminEmailLink').onclick=e=>sendCode(e,pendingEmail);
+ document.getElementById('adminChangeEmail').onclick=()=>{if(busy)return;rememberPending('');showLogin();};
+ document.getElementById('adminEmailCode').focus();
+}
+async function sendCode(event,resendEmail){
+ event.preventDefault();if(busy)return;
+ const input=document.getElementById('adminEmail'),message=document.getElementById('adminLoginMessage'),button=document.getElementById('adminEmailLink'),version=loginVersion;
+ const value=resendEmail||input?.value.trim().toLowerCase();if(!resendEmail&&!input.checkValidity()){input.reportValidity();return;}
  busy=true;button.disabled=true;message.textContent='Sending…';
- try{const r=await sb.auth.signInWithOtp({email:value,options:{emailRedirectTo:redirect,shouldCreateUser:true}});if(r.error)throw r.error;message.textContent='Check your email for the sign-in link. Only approved emails can open Admin.';}
- catch(error){message.textContent=error.message||'Could not send the sign-in link. Try again.';}
- finally{busy=false;button.disabled=false;}
+ try{
+  const r=await sb.auth.signInWithOtp({email:value,options:{emailRedirectTo:redirect,shouldCreateUser:true}});if(r.error)throw r.error;
+  rememberPending(value);if(version===loginVersion)showCode('Check your email for the code. Enter it here without opening a browser link.');
+ }catch(error){if(version===loginVersion)message.textContent=error.message||'Could not send the code. Try again.';}
+ finally{busy=false;if(button.isConnected)button.disabled=false;}
+}
+async function verifyCode(event){
+ event.preventDefault();if(busy)return;
+ const input=document.getElementById('adminEmailCode'),message=document.getElementById('adminLoginMessage'),button=document.getElementById('adminVerifyCode'),version=loginVersion;
+ input.value=input.value.replace(/\s/g,'');if(!input.checkValidity()){input.reportValidity();return;}
+ busy=true;button.disabled=true;message.textContent='Verifying…';
+ try{
+  const response=await sb.auth.verifyOtp({email:pendingEmail,token:input.value,type:'email'});if(response.error)throw response.error;
+  input.value='';rememberPending('');
+  if(version!==loginVersion)return;
+  if(await refresh())await open();else showLogin('This email does not have admin access. Ask the owner to approve it.');
+ }catch(error){if(version===loginVersion)message.textContent=error.message||'That code could not be verified. Request a new code if it has expired.';}
+ finally{busy=false;if(button.isConnected)button.disabled=false;}
 }
 async function open(){
  if(!await refresh()){showLogin('Sign in with an approved email to manage the trip.');return;}
@@ -45,7 +75,7 @@ async function open(){
 }
 async function signOut(){
  const r=await sb.auth.signOut({scope:'local'});if(r.error){alert(r.error.message);return;}
- request++;role=null;email='';sync();overlay.hidden=true;renderMedia();renderCTP();
+ request++;rememberPending('');role=null;email='';sync();overlay.hidden=true;renderMedia();renderCTP();
 }
 async function access(){
  if(role!=='owner')return;saveAdmin.style.display='none';am.innerHTML='<p>Loading approved admins…</p>';
@@ -62,7 +92,7 @@ async function change(value,remove){
 window.LLAdmin={isAdmin,isOwner:()=>role==='owner',refresh,open,showLogin};
 window.openAdmin=open;document.getElementById('admin').onclick=open;
 // Defer Supabase calls outside its auth callback to avoid locking the auth client.
-sb.auth.onAuthStateChange((event)=>{if(['SIGNED_IN','SIGNED_OUT','TOKEN_REFRESHED','USER_UPDATED'].includes(event))setTimeout(async()=>{const ok=await refresh();if(event==='SIGNED_IN'){if(ok)await open();else showLogin('This email does not have admin access. Ask the owner to approve it.');}},0);});
+sb.auth.onAuthStateChange((event)=>{if(event==='SIGNED_IN'&&busy)return;if(['SIGNED_IN','SIGNED_OUT','TOKEN_REFRESHED','USER_UPDATED'].includes(event))setTimeout(async()=>{const ok=await refresh();if(event==='SIGNED_IN'){if(ok)await open();else showLogin('This email does not have admin access. Ask the owner to approve it.');}},0);});
 refresh();window.addEventListener('focus',()=>refresh());setInterval(()=>{if(!document.hidden&&isAdmin())refresh();},60000);
 const callbackError=new URLSearchParams(location.hash.slice(1)).get('error_description');
 if(callbackError){history.replaceState(null,'',location.pathname+location.search);showLogin(callbackError);}
