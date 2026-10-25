@@ -5,8 +5,8 @@ contests, and a photo/video gallery.
 
 - Live site: https://morrisblake-source.github.io/legends-of-lake-lure/
 - Repository: https://github.com/morrisblake-source/legends-of-lake-lure
-- Proposed release: **10.2.0** (not live until approved and merged).
-- Verified production baseline: **10.1**, commit `5df14b04c77438d2b4158263a23cc88ef4eeac04`.
+- Prepared release: **11.0.0** (database approval and deployment pending).
+- Production baseline for this change: **10.3.0**, commit `a552e8edeeb103d8c20d71d46d5c6ddd76ad6c49`.
 
 ## Architecture
 
@@ -66,7 +66,8 @@ Run the offline checks (Node.js required):
 ```sh
 node --check app.js
 node --check data.js
-node --test tests/foundation.test.cjs
+npm ci
+npm test
 ```
 
 Before merging, check phone and desktop layouts, navigation, profiles, historical
@@ -113,7 +114,7 @@ Shared storage requires explicit approval to install
 `migrations/20261017_finance_requests.sql`. It creates one new table only. The public
 client can read/insert/update this table, consistent with the requested no-sign-in
 flow; creator names are self-selected and UI edit restrictions do not verify identity.
-The table has no public delete policy. No SQL has been run as part of development.
+The table has no public delete policy. This finance migration is already deployed.
 The production UI disables saving with a setup notice if the table is unavailable.
 Refresh or reopening the tab reloads shared data. Writes use revision matching to
 reject concurrent edits; the prior request is retained in its change history.
@@ -140,3 +141,44 @@ no money, writes no settlement/payment records, and leaves original requests int
 A balance change invalidates an open plan; refresh failure hides it. Unsaved requests
 are excluded. No database migration is needed. Tests include a separate exhaustive
 solver as an oracle for randomized small cases and a 20-player performance case.
+
+
+## Upcoming trip administration (11.0.0)
+
+The public year selector keeps the completed 2026 event separate from the 2027 trip.
+In Admin, select 2027 and work through Teams & Players, Round Formats, Match
+Schedule and Pairings. Existing players start unassigned; no dates or team names
+are inferred from the previous trip. Save teams to initialize the upcoming event.
+Add Player requires a name and index, with optional team assignment. Unassigned
+or inactive players cannot be paired. Negative indexes represent plus handicaps.
+
+Formats are High/Low, Modified Alternate Shot, Better Ball and Singles. Match
+counts normally follow team sizes; an admin can override them. Course choices use
+only the saved tees: Apple Valley Blue, Bald Mountain Blue, and Bright's Creek
+Long/Intermediate. Round dates, Eastern tee times, courses and tees provide match
+defaults, with ten-minute tee intervals and individual match overrides.
+
+Weather uses the selected course coordinates and exact local date/hour. It shows
+an availability notice outside the forecast range instead of substituting another
+day. Scored matches reject changes to participants, handicap indexes, formats,
+points, courses and tees through the configuration RPC. Date corrections remain
+possible. Revision checks prevent an admin from overwriting another admin's save.
+
+`trip-core.js` holds pure setup/scoring rules; `trip-manager.js` provides upcoming
+trip screens and admin integration; `trip-manager.css` scopes their styles.
+The future finance ledger uses a separate event ID. The existing 2026 score,
+roster, gallery, contest and finance rows are not copied or rewritten.
+
+`db/trip_setup.sql` is the reviewed additive schema proposal. It has **not been
+applied**: automatic approval review rejected its public access grants and finance
+policy expansion pending explicit approval. It creates `trip_configurations` and
+`trip_score_entries`, adds configuration/score RPCs, and permits saved upcoming
+trip IDs in the existing finance ledger. The no-sign-in design gives anonymous
+clients write access; the browser admin PIN does not enforce database permissions.
+Do not merge the frontend until this database change is authorized, applied and
+verified. Preserve the existing row-count/hash baseline when validating it.
+
+Validation: 49 offline tests cover finance regressions, setup/scoring rules and
+mocked DOM workflows, including custom teams, formats, schedule/course changes,
+pairing eligibility, adding players, partial scores and stale revisions. Database
+RPC integration and live browser validation remain pending deployment approval.

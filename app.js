@@ -1,12 +1,12 @@
 const D=LL;const LS={match:"ll-score-match",hole:"ll-score-hole",view:"ll-view",round:"ll-round",player:"ll-player"};const ADMIN_PIN="1961";const Y={"apple": [361, 531, 152, 387, 388, 505, 340, 194, 423, 428, 330, 376, 367, 168, 558, 390, 165, 562], "bald": [488, 169, 419, 142, 341, 151, 509, 348, 479, 384, 381, 152, 327, 373, 509, 160, 421, 472], "brights": [538, 397, 200, 365, 470, 213, 377, 388, 406, 368, 302, 380, 162, 508, 376, 178, 415, 532]};Object.keys(Y).forEach(k=>D.courses[k].yardages=Y[k]);
 
-const APP_RELEASE="10.3.0";
+const APP_RELEASE="11.0.0";
 const EVENT_COMPLETE=true;
 const scoringUnlocked=()=>sessionStorage.getItem("ll-scoring-unlocked-2026")==="1";
 const RELEASE_ATTEMPT_KEY="ll-release-reload-attempt";
 let pendingReleaseReload=null,releaseCheckBusy=false;
 function canReloadForRelease(){
-  if(scoreViewActive()||window.LLFinances?.isDirty())return false;
+  if(scoreViewActive()||(window.LLFinances?.isDirty()||window.LLTripManager?.isDirty()))return false;
   const a=document.activeElement;
   return !(a&&["INPUT","TEXTAREA","SELECT"].includes(a.tagName));
 }
@@ -64,12 +64,12 @@ function renderScoreStatus(){let m=M.find(x=>x.id===sm.value);if(!m||!window.sco
 function roundIntro(r){let k=`ll-round-intro-${r}`;if(sessionStorage.getItem(k))return;let x=M.find(m=>m.round===r);if(!x)return;roundIntroText.innerHTML=`<strong>ROUND ${r}</strong><b>${C(x.course).name.toUpperCase()}</b><span>${fn(x.format).toUpperCase()}</span>`;roundIntro.classList.add("on");sessionStorage.setItem(k,"1");setTimeout(()=>roundIntro.classList.remove("on"),1900)}
 async function weatherForRound(r){
   let w=document.getElementById("weather"),ri=ROUNDINFO[r],m=M.find(x=>x.round===r);if(!w||!ri||!m)return;
+  if(window.LLTrip){const check=window.LLTrip.forecast({date:ri.date,time:ri.tee,course:m.course});if(check.status!=="ready"){w.textContent=check.message;return;}}
   w.innerHTML=`<b>TEE TIME FORECAST · ${ri.teeLabel}</b><small>${ri.day} · ${C(m.course).name.toUpperCase()} · Loading weather…</small>`;
   try{
-    let u=`https://api.open-meteo.com/v1/forecast?latitude=${ri.lat}&longitude=${ri.lng}&hourly=temperature_2m,apparent_temperature,precipitation_probability,weather_code,wind_speed_10m,wind_direction_10m&daily=temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America%2FNew_York&forecast_days=10`;
+    let u=`https://api.open-meteo.com/v1/forecast?latitude=${ri.lat}&longitude=${ri.lng}&hourly=temperature_2m,apparent_temperature,precipitation_probability,weather_code,wind_speed_10m,wind_direction_10m&daily=temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America%2FNew_York&forecast_days=16`;
     let j=await fetch(u).then(x=>{if(!x.ok)throw Error("weather unavailable");return x.json()});
-    let target=new Date(`${ri.date}T${ri.tee}:00-04:00`).getTime(),best=-1,bestDiff=Infinity;
-    j.hourly.time.forEach((t,i)=>{let d=Math.abs(new Date(t+":00-04:00").getTime()-target);if(d<bestDiff){bestDiff=d;best=i}});
+    let best=j.hourly.time.indexOf(`${ri.date}T${ri.tee.slice(0,2)}:00`);
     let di=j.daily.time.indexOf(ri.date);if(best<0)throw Error("forecast not in range");
     let dir=d=>["N","NE","E","SE","S","SW","W","NW"][Math.round(d/45)%8];
     let wx=c=>({0:"Clear",1:"Mostly clear",2:"Partly cloudy",3:"Cloudy",45:"Fog",48:"Fog",51:"Light drizzle",53:"Drizzle",55:"Heavy drizzle",61:"Light rain",63:"Rain",65:"Heavy rain",71:"Light snow",73:"Snow",75:"Heavy snow",80:"Rain showers",81:"Rain showers",82:"Heavy showers",95:"Thunderstorms",96:"Thunderstorms",99:"Thunderstorms"}[c]||"Forecast");
