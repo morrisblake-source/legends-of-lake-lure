@@ -208,3 +208,25 @@ and hashes are unchanged. The security advisor's informational notice for the
 private allowlist's lack of RLS policies is intentional: clients have no table
 privileges and all operations pass through narrowly scoped private functions.
 See https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy.
+
+
+## Home Screen admin sign-in fix (11.0.1, awaiting deployment approval)
+
+Safari and an iPhone Home Screen app maintain separate authentication sessions.
+Email sign-in now displays a code entry form in the requesting app and calls
+Supabase `verifyOtp` with the requested email and type `email`. The session is
+created in that app. The live allowlist still authorizes every admin write.
+Pending email state survives a reload while reading Mail; codes are never saved
+in browser storage. Invalid/expired codes keep the form open for retry or resend.
+
+Before deploying the frontend, update both Supabase Authentication email bodies:
+Magic link or OTP uses `db/email-templates/magic-link.html`, and Confirm sign up
+uses `db/email-templates/confirm-signup.html`. Use the subject `Your Lake Lure
+sign-in code` for both. These templates include `{{ .Token }}` and deliberately
+omit browser links, keeping sign-in inside the requesting app. Existing sessions
+remain signed in. No database schema, trip setup or score rows need to change.
+The additional-admin custom SMTP requirement is unchanged.
+
+Tests verify code sign-in, server rejection, unapproved users, pending-email
+restoration, resending and switching emails. Real-device Home Screen sign-in
+must be confirmed after the template and frontend updates are deployed together.

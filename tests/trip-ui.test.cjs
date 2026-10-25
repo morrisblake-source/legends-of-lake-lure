@@ -6,7 +6,7 @@ function fixture(){
  const html=fs.readFileSync(path.join(base,'index.html'),'utf8');
  const dom=new JSDOM(html,{url:'https://test.invalid/',runScripts:'outside-only',pretendToBeVisual:true});const w=dom.window,ctx=dom.getInternalVMContext(),errors=[],writes=[];let saved=null,rows=[];
  w.LLAdmin={isAdmin:()=>true,refresh:async()=>true,showLogin:()=>errors.push('Admin sign-in required')};w.structuredClone=structuredClone;w.alert=msg=>errors.push(String(msg));w.confirm=()=>true;w.setInterval=()=>0;w.localStorage.setItem('ll-intro-seen-845','1');
- w.fetch=async()=>({ok:true,json:async()=>({version:'11.0.0'})});
+ w.fetch=async()=>({ok:true,json:async()=>JSON.parse(fs.readFileSync(path.join(base,'release.json'),'utf8'))});
  w.supabase={createClient:()=>({from:table=>new Query(table),channel:()=>({on(){return this;},subscribe(){return this;}}),rpc:async(name,args)=>{
   writes.push({name,args});
   if(name==='ll_save_trip_configuration'){
