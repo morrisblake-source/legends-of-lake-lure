@@ -5,7 +5,7 @@ contests, and a photo/video gallery.
 
 - Live site: https://morrisblake-source.github.io/legends-of-lake-lure/
 - Repository: https://github.com/morrisblake-source/legends-of-lake-lure
-- Prepared release: **11.0.0** (database approval and deployment pending).
+- Prepared release: **11.0.0** (email configuration and deployment pending).
 - Production baseline for this change: **10.3.0**, commit `a552e8edeeb103d8c20d71d46d5c6ddd76ad6c49`.
 
 ## Architecture
@@ -169,16 +169,40 @@ trip screens and admin integration; `trip-manager.css` scopes their styles.
 The future finance ledger uses a separate event ID. The existing 2026 score,
 roster, gallery, contest and finance rows are not copied or rewritten.
 
-`db/trip_setup.sql` is the reviewed additive schema proposal. It has **not been
-applied**: automatic approval review rejected its public access grants and finance
-policy expansion pending explicit approval. It creates `trip_configurations` and
-`trip_score_entries`, adds configuration/score RPCs, and permits saved upcoming
-trip IDs in the existing finance ledger. The no-sign-in design gives anonymous
-clients write access; the browser admin PIN does not enforce database permissions.
-Do not merge the frontend until this database change is authorized, applied and
-verified. Preserve the existing row-count/hash baseline when validating it.
+`db/trip_setup.sql` installs upcoming-trip storage and database-enforced admin
+permissions. It has been applied using recorded Supabase migrations. The earlier
+proposal granting anonymous configuration writes was rejected and replaced.
+`ll_private.admin_emails` stores approved emails outside the public API. The owner
+is seeded separately, never through a public first-user claim. Only the owner may
+list, add or remove admins; no browser metadata or editable JWT claims authorize
+access. Each privileged operation checks the current verified Supabase user
+against the live allowlist, so removal takes effect on the next operation.
 
-Validation: 49 offline tests cover finance regressions, setup/scoring rules and
-mocked DOM workflows, including custom teams, formats, schedule/course changes,
-pairing eligibility, adding players, partial scores and stale revisions. Database
-RPC integration and live browser validation remain pending deployment approval.
+`admin-auth.js` uses Supabase magic links with persisted, refreshed sessions.
+Existing PIN flags no longer authorize actions. Public read access, upcoming
+score entry, finance requests, contest submissions and uploads remain available
+without sign-in. Admin-only setup and completed-trip corrections require an
+approved session. Public submissions use separate tables/RPCs and cannot overwrite
+team setup. Sensitive functions live in the private schema with explicit grants;
+public wrappers run with invoker privileges. Never expose private emails or
+service-role credentials in client assets.
+
+Before publishing, configure the exact Pages URL as an allowed auth redirect and
+verify email delivery. Supabase's default sender is restricted to organization
+team members; additional admins require a configured SMTP sender. No email is sent
+when an owner adds an approved address: the new admin requests their own link.
+The connector cannot manage these auth settings; the dashboard is required.
+Dashboard setup is pending: the selected Apple sign-in route reported a locked
+Apple account. Resume with another supported dashboard sign-in method.
+Admin permissions are already enforced in production, so the old PIN no longer
+authorizes database setup writes while the new frontend awaits deployment.
+
+Validation includes 54 offline tests for finance regressions, setup/scoring rules,
+mocked DOM workflows, sign-in/session behavior and owner-only email management.
+Transaction-scoped tests on Supabase verified anonymous/unapproved denial, owner
+protection, admin setup, stale revisions, public scoring, scored-match locks and
+immediate revocation. Test records were rolled back. Original trip record counts
+and hashes are unchanged. The security advisor's informational notice for the
+private allowlist's lack of RLS policies is intentional: clients have no table
+privileges and all operations pass through narrowly scoped private functions.
+See https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy.
