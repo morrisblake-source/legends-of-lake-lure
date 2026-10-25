@@ -1,6 +1,7 @@
 /* Supabase verifies identity; database policies decide every admin write. */
 (function(){
 'use strict';
+const senderReady=false; // Set true after custom SMTP delivery is configured and verified.
 const redirect='https://morrisblake-source.github.io/legends-of-lake-lure/';
 let role=null,email='',busy=false,request=0;
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -49,14 +50,14 @@ async function signOut(){
 async function access(){
  if(role!=='owner')return;saveAdmin.style.display='none';am.innerHTML='<p>Loading approved admins…</p>';
  const r=await sb.rpc('ll_list_admins');if(r.error){am.textContent=r.error.message;await refresh();return;}
- am.innerHTML=`<h3>Admin Access</h3><p>Only the owner can add or remove admins. Approved admins can manage trip setup.</p><div>${r.data.map(a=>`<div class=adminAccessRow><span>${escape(a.email)}<small>${a.role==='owner'?'Owner · cannot be removed':'Admin'}</small></span>${a.role==='owner'?'':`<button data-remove-admin="${escape(a.email)}">Remove</button>`}</div>`).join('')}</div><form id=adminAddEmail><label>New admin email<input id=adminNewEmail type=email required maxlength=254 autocomplete=off></label><button class=primary>Add approved email</button></form><p id=adminAccessMessage role=status></p>`;
+ am.innerHTML=`<h3>Admin Access</h3><p>Only the owner can add or remove admins. Approved admins can manage trip setup.</p>${senderReady?'':'<p class=tripError>Email delivery for additional admins still needs setup. Owner sign-in is available.</p>'}<div>${r.data.map(a=>`<div class=adminAccessRow><span>${escape(a.email)}<small>${a.role==='owner'?'Owner · cannot be removed':'Admin'}</small></span>${a.role==='owner'?'':`<button data-remove-admin="${escape(a.email)}">Remove</button>`}</div>`).join('')}</div><form id=adminAddEmail><label>New admin email<input id=adminNewEmail type=email required maxlength=254 autocomplete=off></label><button class=primary>Add approved email</button></form><p id=adminAccessMessage role=status></p>`;
  am.querySelectorAll('[data-remove-admin]').forEach(b=>b.onclick=async()=>{if(confirm(`Remove admin access for ${b.dataset.removeAdmin}?`))await change(b.dataset.removeAdmin,true);});
  document.getElementById('adminAddEmail').onsubmit=async e=>{e.preventDefault();await change(document.getElementById('adminNewEmail').value,false);};
 }
 async function change(value,remove){
  const r=await sb.rpc('ll_change_admin',{p_email:value.trim().toLowerCase(),p_remove:remove});
  if(r.error){document.getElementById('adminAccessMessage').textContent=r.error.message;await refresh();return;}
- await access();document.getElementById('adminAccessMessage').textContent=remove?'Admin access removed.':'Email approved. They can now request a sign-in link from the website.';
+ await access();document.getElementById('adminAccessMessage').textContent=remove?'Admin access removed.':(senderReady?'Email approved. They can now request a sign-in link from the website.':'Email approved. Email delivery for additional admins still needs setup.');
 }
 window.LLAdmin={isAdmin,isOwner:()=>role==='owner',refresh,open,showLogin};
 window.openAdmin=open;document.getElementById('admin').onclick=open;

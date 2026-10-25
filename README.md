@@ -5,7 +5,7 @@ contests, and a photo/video gallery.
 
 - Live site: https://morrisblake-source.github.io/legends-of-lake-lure/
 - Repository: https://github.com/morrisblake-source/legends-of-lake-lure
-- Prepared release: **11.0.0** (email configuration and deployment pending).
+- Prepared release: **11.0.0** (owner sign-in release; additional-admin email delivery pending).
 - Production baseline for this change: **10.3.0**, commit `a552e8edeeb103d8c20d71d46d5c6ddd76ad6c49`.
 
 ## Architecture
@@ -192,10 +192,12 @@ verify email delivery. Supabase's default sender is restricted to organization
 team members; additional admins require a configured SMTP sender. No email is sent
 when an owner adds an approved address: the new admin requests their own link.
 The connector cannot manage these auth settings; the dashboard is required.
-Dashboard setup is pending: the selected Apple sign-in route reported a locked
-Apple account. Resume with another supported dashboard sign-in method.
-Admin permissions are already enforced in production, so the old PIN no longer
-authorizes database setup writes while the new frontend awaits deployment.
+The exact Pages URL is now saved as both Site URL and an allowed redirect.
+The dashboard confirms the built-in sender is in use. Owner sign-in can use the
+organization member email; delivery to additional admins requires custom SMTP.
+Admin Access displays this limitation explicitly. Set `senderReady` in
+`admin-auth.js` only after custom delivery is configured and verified.
+
 
 Validation includes 54 offline tests for finance regressions, setup/scoring rules,
 mocked DOM workflows, sign-in/session behavior and owner-only email management.
