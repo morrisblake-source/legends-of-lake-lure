@@ -2,11 +2,12 @@
 (function(){
 'use strict';
 const F=window.LLFinance, host=document.getElementById('financeRoot');if(!host)return;
-const demo=window.LL_FINANCE_SANDBOX===true, KEY='ll-finances-sandbox-v1', EVENT='lake-lure-2026';
+const demo=window.LL_FINANCE_SANDBOX===true, KEY='ll-finances-sandbox-v1';
+let EVENT='lake-lure-2026',contextPlayers=null,contextVersion=0;
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let records=[],editing=null,busy=false,ready=false,dirty=false,loadBusy=false,settlementFingerprint=null;
 let roster='';
-let people=()=>[...LL.players].sort((a,b)=>a.name.localeCompare(b.name));
+let people=()=>[...(contextPlayers||LL.players)].sort((a,b)=>a.name.localeCompare(b.name));
 const name=id=>people().find(p=>p.id===id)?.name||id;
 const selected=group=>[...host.querySelectorAll(`[data-fin-group="${group}"]:checked`)].map(x=>x.value);
 const el=id=>document.getElementById(id);
@@ -68,14 +69,14 @@ function render(){
 }
 function reset(){editing=null;el('financeForm').reset();host.querySelectorAll('[data-fin-group]').forEach(x=>{x.checked=false;x.dataset.auto='0';});el('financeFormTitle').textContent='New request';el('financeSave').textContent='Create Request';el('financeCancelEdit').hidden=true;dirty=false;message('');preview();render();}
 async function load(){
-  if(loadBusy||busy)return;syncRoster();loadBusy=true;el('financeRefresh').disabled=true;
+  if(loadBusy||busy)return;const version=contextVersion;syncRoster();loadBusy=true;el('financeRefresh').disabled=true;
   try{
     let rows;
     if(demo){rows=JSON.parse(localStorage.getItem(KEY)||'[]');if(!Array.isArray(rows))throw Error('Sandbox storage is invalid.');}
     else{const q=await sb.from('finance_requests').select('*').eq('event_id',EVENT).order('created_at',{ascending:false});if(q.error)throw q.error;rows=q.data||[];}
-    rows.forEach(r=>F.calculate(r.input));records=rows.sort((a,b)=>b.created_at.localeCompare(a.created_at));ready=true;message('');render();
-  }catch(e){ready=false;message(demo?'Could not load sandbox entries: '+e.message:'Shared finances is not available yet. The Finances database setup must be approved and installed before requests can be saved.',true);}
-  finally{loadBusy=false;el('financeRefresh').disabled=false;preview();}
+    if(version!==contextVersion)return;rows.forEach(r=>F.calculate(r.input));records=rows.sort((a,b)=>b.created_at.localeCompare(a.created_at));ready=true;message('');render();
+  }catch(e){if(version!==contextVersion)return;ready=false;message(demo?'Could not load sandbox entries: '+e.message:'Shared finances is not available yet. The Finances database setup must be approved and installed before requests can be saved.',true);}
+  finally{if(version===contextVersion){loadBusy=false;el('financeRefresh').disabled=false;preview();}}
 }
 async function persist(next,previous){
   if(demo){
@@ -135,7 +136,7 @@ el('financeLog').addEventListener('click',async e=>{
   }
 });
 if(demo){el('financeClearDemo').onclick=()=>{if(confirm('Clear all sandbox entries in this browser?')){localStorage.removeItem(KEY);reset();load();}};window.addEventListener('storage',e=>{if(e.key===KEY)load();});}
-window.LLFinances={load,isDirty:()=>dirty};
+window.LLFinances={load,isDirty:()=>dirty||busy,setEvent:async(eventId,players)=>{if(busy||dirty)return;const same=EVENT===eventId;EVENT=eventId;contextPlayers=players;if(same){syncRoster();render();await load();return;}contextVersion++;loadBusy=false;ready=false;records=[];settlementFingerprint=null;el('financeSettlement').hidden=true;el('financeSettlementPlan').innerHTML='';el('financeSettleMessage').textContent='';reset();await load();}};
 window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue='';}});
 preview();load();
 })();
